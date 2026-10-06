@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><title>PrintScreen</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src file: data:; style-src 'self' 'unsafe-inline'">
+<link rel="stylesheet" href="style.css"></head>
+<body>
+<header>
+  <span class="logo" data-ic="gamepad-2">PrintScreen</span>
+  <button id="cap" title="Celý monitor">📸 Celý monitor</button>
+  <button id="reg" title="Výřez oblasti" data-ic="crop"> Oblast</button>
+  <button id="undo">↶ Zpět</button>
+  <input id="q" type="search" placeholder="Hledat (název, poznámka, štítek)…">
+  <span class="sp"></span>
+  <button id="repb" class="ghost" title="Report z obrázků (PDF / Markdown)">📄 Report</button>
+  <button id="trashb" class="ghost" title="Koš" data-ic="trash"><b class="bd"></b></button>
+  <button id="folder" class="ghost" title="Otevřít složku se snímky" data-ic="folder-open"></button>
+  <button id="cfg" class="ghost" title="Nastavení" data-ic="settings"></button>
+</header>
+<nav id="tabs"></nav>
+<div id="wrap">
+  <main id="grid"></main>
+  <svg id="arrows"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs><g id="ag"></g></svg>
+</div>
+<div id="pop" hidden><input id="plabel" placeholder="Popisek (např. ×3)" maxlength="40"><span id="pcol"></span><button id="pstyle" class="ghost" title="Tvar šipky"></button><button id="plock" class="ghost" title="Zamknout šipku"></button><button id="pdel" title="Smazat šipku">🗑</button></div>
+<div id="toast"></div>
+
+<div id="set" class="modal" hidden><div class="box">
+  <div class="mh"><h3>Nastavení</h3><button class="ghost mclose">✕</button></div>
+  <h4>Nástěnka (aktivní záložka)</h4>
+  <div class="grp">
+    <label>Sloupce <input id="cols" type="number" min="1" max="8"></label>
+    <label>Řádky <input id="rows" type="number" min="1" max="8"></label>
+    <label>Mezera <input id="gap" type="number" min="0" max="40"></label>
+    <label>Zobrazení <select id="fit"><option value="contain">Celý obrázek</option><option value="cover">Vyplnit buňku</option></select></label>
+  </div>
+  <h4>Snímání</h4>
+  <div class="grp">
+    <label>Zkratka: celý monitor <input id="kfull" readonly size="24" title="Klikni a stiskni novou zkratku"></label><span id="sfull"></span>
+    <label>Zkratka: oblast <input id="kreg" readonly size="24" title="Klikni a stiskni novou zkratku"></label><span id="sreg"></span>
+    <label>Monitor <select id="mon"></select></label>
+  </div>
+  <h4>Vzhled</h4>
+  <div class="grp"><label>Motiv <select id="theme"><option value="dark">Tmavý</option><option value="light">Světlý</option><option value="auto">Podle systému</option></select></label></div>
+  <h4>Nástroje</h4>
+  <div class="grp"><button id="diag">Diagnostika</button></div>
+  <h4>Ovládání</h4>
+  <p class="hint2">Dvojklik = režim úprav (QA) · ⤢ zvětšit · tažením přesunete / prohodíte · ➜ šipka · ⇄ porovnat · ✎ úpravy · ⓘ název, poznámka, štítky · kolečko = zoom, tažení = posun, střední tlačítko = reset · Ctrl+1…9 = nástěnka · Ctrl+Z = zpět</p>
+  <h4>Verze</h4>
+  <div id="ver"></div><div id="chl"></div>
+</div></div>
+
+<div id="dg" class="modal" hidden>
+  <div class="box">
+    <div class="mh"><h3>Diagnostika</h3><button class="ghost mclose">✕</button></div>
+    <div id="dgth"></div>
+    <pre id="dgtxt"></pre>
+    <div class="row"><button id="dgtest">Vyzkoušet výřez</button><button id="dgcopy">Kopírovat text</button></div>
+  </div>
+</div>
+
+<div id="trash" class="modal" hidden><div class="box wide">
+  <div class="mh"><h3>Koš</h3><span class="sp"></span><button id="trempty">Vysypat koš</button><button class="ghost mclose">✕</button></div>
+  <p class="hint2">Smazané obrázky se sem ukládají. „Obnovit" je vrátí do první volné buňky aktivní nástěnky.</p>
+  <div id="trgrid"></div>
+</div></div>
+
+<div id="detail" class="modal" hidden><div class="box">
+  <div class="mh"><h3>Název, poznámka a štítky</h3><button class="ghost mclose">✕</button></div>
+  <label class="col">Název <input id="dtitle" maxlength="80"></label>
+  <label class="col">Poznámka <textarea id="dnote" rows="4"></textarea></label>
+  <label class="col">Štítky (oddělené čárkou) <input id="dtags"></label>
+  <div id="dq" class="row"><button class="ghost" data-t="bug">bug</button><button class="ghost" data-t="OK">OK</button><button class="ghost" data-t="blocker">blocker</button><button class="ghost" data-t="recept">recept</button></div>
+  <div class="row"><button id="dsave">Uložit</button><button class="ghost mclose">Zrušit</button></div>
+</div></div>
+
+<div id="cmp" class="modal" hidden><div class="box full">
+  <div class="mh"><h3>Porovnání snímků</h3><span id="cmpmodes"><button data-m="ov">Překrytí</button><button data-m="sp">Posuvník</button><button data-m="df">Rozdíl</button></span>
+    <label><span id="cmplbl">Průhlednost</span> <input id="cmprng" type="range" min="0" max="100"></label><span id="cmpinfo"></span><span class="sp"></span><button class="ghost mclose">✕</button></div>
+  <div class="cmpwrap"><canvas id="cmpc"></canvas></div>
+</div></div>
+
+<div id="rep" class="modal" hidden><div class="box">
+  <div class="mh"><h3>Report z obrázků</h3><button class="ghost mclose">✕</button></div>
+  <label class="col">Název reportu <input id="rtitle" maxlength="80"></label>
+  <p class="hint2">Pořadí podle nástěnky (zleva doprava, shora dolů). Název, poznámka a štítky se berou z ⓘ.</p>
+  <div id="rlist"></div>
+  <div class="row"><button id="rpdf">Export PDF</button><button id="rmd">Export Markdown (složka)</button><button id="rtxt" class="ghost">Kopírovat text</button></div>
+</div></div>
+
+<div id="ed" hidden>
+  <div id="edbar">
+    <span id="edtools"></span><span id="edcols"></span>
+    <label>Tloušťka <input id="edw" type="range" min="2" max="12" value="4"></label>
+    <button id="edundo" title="Zpět (Ctrl+Z)">↶</button><button id="edredo" title="Znovu (Ctrl+Y)">↷</button>
+    <label id="edpicklbl" hidden title="Při kliknutí pipetou zapíše do obrázku značku + a text s kódem barvy"><input type="checkbox" id="edpickmk"> Barva do obrázku</label><span id="edinfo"></span>
+    <span class="sp"></span>
+    <button id="edsave">Uložit</button><button id="edcancel" class="ghost">Zrušit</button>
+  </div>
+  <div id="edwrap"><canvas id="edc"></canvas></div>
+  <input id="edtxt" hidden placeholder="Text + Enter">
+</div>
+<script src="icons.js"></script>
+<script src="changelog.js"></script>
+<script src="app.js"></script>
+<script src="extra.js"></script>
+<script src="editor.js"></script>
+</body></html>
