@@ -12,6 +12,8 @@ contextBridge.exposeInMainWorld('api', {
   deleteFiles: n => ipcRenderer.invoke('delete-files', n),
   reportPdf: r => ipcRenderer.invoke('report-pdf', r),
   reportMd: r => ipcRenderer.invoke('report-md', r),
+  pickDir: () => ipcRenderer.invoke('pick-dir'),
+  saveTo: (n, d, t) => ipcRenderer.invoke('save-to', n, d, t),
   readPng: n => ipcRenderer.invoke('read-png', n),
   writePng: d => ipcRenderer.invoke('write-png', d),
   saveAs: n => ipcRenderer.invoke('save-as', n),

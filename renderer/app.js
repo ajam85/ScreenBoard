@@ -48,7 +48,7 @@ function render() {
     d.dataset.i = i;
     if (c) {
       d.draggable = !c.locked; d.dataset.id = c.id; const z = c.z || { s: 1, x: 0, y: 0 };
-      d.innerHTML = `<img src="${url(c.view || c.file)}" style="object-fit:${S.fit};transform:translate(${z.x}px,${z.y}px) scale(${z.s})" draggable="false"><div class="bar"><button data-a="lock" title="Zamknout / odemknout">${c.locked ? '🔒' : '🔓'}</button><button data-a="max" title="Zvětšit přes celé okno (Esc = zpět)">⤢</button><button data-a="edit" title="Upravit / anotovat (QA) – nebo dvojklik na obrázek">✎</button><button data-a="info" title="Název, poznámka, štítky">ⓘ</button><button data-a="link" title="Spojit šipkou s jiným obrázkem">➜</button><button data-a="cmp" title="Porovnat s jiným snímkem">⇄</button><button data-a="save" title="Uložit jako…">${IC.save}</button><button data-a="del" title="Smazat">${IC.trash}</button></div>${capHtml(c)}`;
+      d.innerHTML = `<img src="${url(c.view || c.file)}" style="object-fit:${S.fit};transform:translate(${z.x}px,${z.y}px) scale(${z.s})" draggable="false"><div class="bar"><button data-a="lock" title="Zamknout / odemknout">${c.locked ? IC.lock : IC['lock-open']}</button><button data-a="max" title="Zvětšit přes celé okno (Esc = zpět)">${IC['move-diagonal']}</button><button data-a="edit" title="Upravit / anotovat (QA) – nebo dvojklik na obrázek">${IC['square-pen']}</button><button data-a="info" title="Název, poznámka, štítky">${IC.info}</button><button data-a="link" title="Spojit šipkou s jiným obrázkem">${IC['arrow-big-right-dash']}</button><button data-a="cmp" title="Porovnat s jiným snímkem">${IC['arrow-right-left']}</button>${saveBtns()}<button data-a="del" title="Smazat">${IC.trash}</button></div>${capHtml(c)}`;
     }
     grid.appendChild(d);
   }
@@ -67,7 +67,7 @@ grid.addEventListener('click', e => {
   }
   const b = e.target.closest('button'); if (!b) return;
   const i = +b.closest('.cell').dataset.i, c = S.cells[i];
-  if (b.dataset.a === 'save') api.saveAs(c.view || c.file);
+  if (/^sv\d$/.test(b.dataset.a)) saveTo(+b.dataset.a[2], c);
   else if (b.dataset.a === 'link') startLink(c);
   else if (b.dataset.a === 'cmp') startLink(c, 'cmp');
   else if (b.dataset.a === 'info') openDetail(c);
@@ -173,7 +173,7 @@ function drawSwatches() {
 function popRefresh() {
   const a = arrowOf(popId); if (!a) return;
   $('#plabel').value = a.label; $('#plabel').disabled = !!a.locked;
-  $('#plock').textContent = a.locked ? '🔒' : '🔓'; $('#plock').title = a.locked ? 'Odemknout šipku' : 'Zamknout šipku';
+  $('#plock').innerHTML = a.locked ? IC.lock : IC['lock-open']; $('#plock').title = a.locked ? 'Odemknout šipku' : 'Zamknout šipku';
   $('#pstyle').textContent = a.style === 'elbow' ? '↳ Zalomená' : '— Přímá';
   drawSwatches();
 }
@@ -203,13 +203,13 @@ new ResizeObserver(drawArrows).observe($('#wrap'));
 
 // ---------- Víc nástěnek (záložky) ----------
 function renderTabs() {
-  $('#tabs').innerHTML = ALL.boards.map(b => `<button class="tab${b.id === ALL.active ? ' on' : ''}" data-id="${b.id}" title="Dvojklik = přejmenovat · Ctrl+${ALL.boards.indexOf(b) + 1}">${esc(b.name)}${tabCnt(b)}${b.id === ALL.active && ALL.boards.length > 1 ? '<span class="x" title="Smazat nástěnku">×</span>' : ''}</button>`).join('') + '<button id="addb" class="tab" title="Nová nástěnka">+</button>';
+  $('#tabs').innerHTML = ALL.boards.map(b => `<button class="tab${b.id === ALL.active ? ' on' : ''}" data-id="${b.id}" title="Dvojklik = přejmenovat · Ctrl+${ALL.boards.indexOf(b) + 1}">${esc(b.name)}${tabCnt(b)}${b.id === ALL.active && ALL.boards.length > 1 ? `<span class="x" title="Smazat nástěnku">${IC['circle-x']}</span>` : ''}</button>`).join('') + '<button id="addb" class="tab" title="Nová nástěnka">' + IC['square-plus'] + '</button>';
 }
 const tabs = $('#tabs');
 tabs.addEventListener('click', e => {
-  if (e.target.id === 'addb') { snap(); const b = newBoard('Nástěnka ' + (ALL.boards.length + 1)); ALL.boards.push(b); setActive(b.id); return commit(); }
+  if (e.target.closest('#addb')) { snap(); const b = newBoard('Nástěnka ' + (ALL.boards.length + 1)); ALL.boards.push(b); setActive(b.id); return commit(); }
   const t = e.target.closest('.tab[data-id]'); if (!t) return;
-  if (e.target.classList.contains('x')) {
+  if (e.target.closest('.x')) {
     snap(); const gone = ALL.boards.find(b => b.id === ALL.active); gone.cells.forEach(c => toTrash(c, gone.name));
     ALL.boards = ALL.boards.filter(b => b.id !== ALL.active); setActive(ALL.boards[0].id); commit();
     return toast('Nástěnka smazána (snímky jsou v koši)', 'Vrátit', doUndo);
@@ -217,7 +217,7 @@ tabs.addEventListener('click', e => {
   if (+t.dataset.id !== ALL.active) { setActive(+t.dataset.id); persist(); render(); }
 });
 tabs.addEventListener('dblclick', e => {
-  const t = e.target.closest('.tab[data-id]'); if (!t || e.target.classList.contains('x')) return;
+  const t = e.target.closest('.tab[data-id]'); if (!t || e.target.closest('.x')) return;
   const b = ALL.boards.find(x => x.id === +t.dataset.id), inp = document.createElement('input');
   inp.value = b.name; inp.maxLength = 30; inp.className = 'tabinp'; t.replaceWith(inp); inp.focus(); inp.select();
   let done = false;
@@ -280,16 +280,37 @@ function showSet() {
   }
   $('#mon').innerHTML = '<option value="auto">Automaticky (kde je kurzor)</option>' + SET.displays.map(d => `<option value="${d.id}">${esc(d.label)}</option>`).join('');
   $('#mon').value = SET.settings.monitor;
-  $('#theme').value = SET.settings.theme || 'dark'; applyTheme();
-  $('#ver').textContent = 'Verze ' + SET.version;
+  document.querySelectorAll('#theme button').forEach(b => b.classList.toggle('on', b.dataset.v === (SET.settings.theme || 'light'))); applyTheme();
+  $('#versum').textContent = 'Verze ' + SET.version + ' · vývoj s pomocí AI: Claude Sonnet 5.5 (Anthropic)';
   $('#chl').innerHTML = CHANGELOG.map(r => `<h5>${r.v}</h5><ul>${r.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>`).join('');
+  $('#dirs').innerHTML = (SET.settings.saveDirs || []).map((d, i) => { const col = esc(d.color || '#2f5d8a'); return `<div class="fcard" data-i="${i}"><div class="fh"><span class="pv" style="background:${col}">${IC.save}</span><b>Tlačítko uložení ${i + 1}</b></div><div class="srow"><div class="sl"><b>Název</b><small>zobrazí se v popisku tlačítka</small></div><div class="sc"><input type="text" data-f="name" value="${esc(d.name || '')}" placeholder="Název" size="22"></div></div><div class="srow"><div class="sl"><b>Složka</b><small>kam se ukládají kopie obrázků</small></div><div class="sc"><input type="text" readonly value="${esc(d.path || '')}" placeholder="(není vybrána)" size="26" title="${esc(d.path || '')}"><button data-a="pick">Vybrat…</button><button data-a="clr" class="ghost" title="Zrušit složku">${IC['circle-x']}</button></div></div><div class="srow"><div class="sl"><b>Barva tlačítka</b></div><div class="sc"><input type="color" data-f="color" value="${col}"></div></div></div>`; }).join('');
+  render();
 }
 function applyTheme() {
-  const t = (SET && SET.settings.theme) || 'dark';
+  const t = (SET && SET.settings.theme) || 'light';
   document.documentElement.dataset.theme = (t === 'light' || (t === 'auto' && matchMedia('(prefers-color-scheme: light)').matches)) ? 'light' : 'dark';
 }
 matchMedia('(prefers-color-scheme: light)').addEventListener('change', applyTheme);
-$('#theme').onchange = async e => { SET = await api.setSettings({ theme: e.target.value }); showSet(); };
+$('#theme').onclick = async e => { const v = e.target.dataset.v; if (v) { SET = await api.setSettings({ theme: v }); showSet(); } };
+// ---------- Ukládání do dvou složek ----------
+function saveBtns() {
+  return ((SET && SET.settings.saveDirs) || []).map((d, k) => `<button data-a="sv${k}" style="background:${esc(d.color || '#2f5d8a')}" title="${esc(d.name || 'Složka ' + (k + 1))}: ${esc(d.path || '(klikni a vyber složku)')}">${IC.save}</button>`).join('');
+}
+async function setDir(i, patch) {
+  SET = await api.setSettings({ saveDirs: SET.settings.saveDirs.map((d, k) => k === i ? { ...d, ...patch } : d) }); showSet();
+}
+async function saveTo(k, c) {
+  let d = SET.settings.saveDirs[k];
+  if (!d.path) { const p = await api.pickDir(); if (!p) return; await setDir(k, { path: p }); d = SET.settings.saveDirs[k]; }
+  const r = await api.saveTo(c.view || c.file, d.path, c.title || '');
+  toast(r.ok ? `✔ Uloženo (${d.name || 'složka ' + (k + 1)}): ${r.name}` : '⚠ ' + r.msg);
+}
+$('#dirs').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return; const i = +b.closest('.fcard').dataset.i;
+  if (b.dataset.a === 'pick') { const p = await api.pickDir(); if (p) setDir(i, { path: p }); }
+  else if (b.dataset.a === 'clr') setDir(i, { path: '' });
+});
+$('#dirs').addEventListener('change', e => { const f = e.target.dataset.f; if (f) setDir(+e.target.closest('.fcard').dataset.i, { [f]: e.target.value }); });
 // ---------- Koš, hledání, popisky ----------
 function toTrash(c, board) {
   if (!c) return;
@@ -340,5 +361,5 @@ $('#dgtest').onclick = () => { $('#dg').hidden = true; api.captureRegion(); };
   api.onShot(place);
   api.onError(m => toast('⚠ ' + m));
   SET = await api.getSettings(); showSet();
-  if (!SET.status.full || !SET.status.region) { openModal('#set'); toast('⚠ Některá zkratka je obsazená jinou aplikací – změň ji v Nastavení'); }
+  if (!SET.status.full || !SET.status.region) { openModal('#set'); showSec('capture'); toast('⚠ Některá zkratka je obsazená jinou aplikací – změň ji v Nastavení'); }
 })();

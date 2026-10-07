@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="cs"><head><meta charset="utf-8"><title>PrintScreen</title>
+<html lang="cs"><head><meta charset="utf-8"><title>ScreenBoard</title>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src file: data:; style-src 'self' 'unsafe-inline'">
 <link rel="stylesheet" href="style.css"></head>
 <body>
 <header>
-  <span class="logo" data-ic="gamepad-2">PrintScreen</span>
-  <button id="cap" title="Celý monitor">📸 Celý monitor</button>
+  <span class="logo" data-ic="gamepad-2">ScreenBoard</span>
+  <button id="cap" title="Celý monitor" data-ic="screen-share"> Celý monitor</button>
   <button id="reg" title="Výřez oblasti" data-ic="crop"> Oblast</button>
-  <button id="undo">↶ Zpět</button>
+  <button id="undo" data-ic="undo-2"> Zpět</button>
   <input id="q" type="search" placeholder="Hledat (název, poznámka, štítek)…">
   <span class="sp"></span>
-  <button id="repb" class="ghost" title="Report z obrázků (PDF / Markdown)">📄 Report</button>
+  <button id="repb" class="ghost" title="Report z obrázků (PDF / Markdown)" data-ic="report"> Report</button>
   <button id="trashb" class="ghost" title="Koš" data-ic="trash"><b class="bd"></b></button>
   <button id="folder" class="ghost" title="Otevřít složku se snímky" data-ic="folder-open"></button>
   <button id="cfg" class="ghost" title="Nastavení" data-ic="settings"></button>
@@ -20,32 +20,85 @@
   <main id="grid"></main>
   <svg id="arrows"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs><g id="ag"></g></svg>
 </div>
-<div id="pop" hidden><input id="plabel" placeholder="Popisek (např. ×3)" maxlength="40"><span id="pcol"></span><button id="pstyle" class="ghost" title="Tvar šipky"></button><button id="plock" class="ghost" title="Zamknout šipku"></button><button id="pdel" title="Smazat šipku">🗑</button></div>
+<div id="pop" hidden><input id="plabel" placeholder="Popisek (např. ×3)" maxlength="40"><span id="pcol"></span><button id="pstyle" class="ghost" title="Tvar šipky"></button><button id="plock" class="ghost" title="Zamknout šipku"></button><button id="pdel" class="danger" title="Smazat šipku" data-ic="trash"></button></div>
 <div id="toast"></div>
 
-<div id="set" class="modal" hidden><div class="box">
-  <div class="mh"><h3>Nastavení</h3><button class="ghost mclose">✕</button></div>
-  <h4>Nástěnka (aktivní záložka)</h4>
-  <div class="grp">
-    <label>Sloupce <input id="cols" type="number" min="1" max="8"></label>
-    <label>Řádky <input id="rows" type="number" min="1" max="8"></label>
-    <label>Mezera <input id="gap" type="number" min="0" max="40"></label>
-    <label>Zobrazení <select id="fit"><option value="contain">Celý obrázek</option><option value="cover">Vyplnit buňku</option></select></label>
+<div id="set" class="modal" hidden><div class="box settings">
+  <div class="mh"><h3>Nastavení</h3><button class="ghost mclose" data-ic="circle-x"></button></div>
+  <div class="sbody">
+    <nav class="snav">
+      <button data-s="board" class="on">Nástěnka</button>
+      <button data-s="capture">Snímání</button>
+      <button data-s="look">Vzhled</button>
+      <button data-s="save">Ukládání do složek</button>
+      <button data-s="help">Nástroje a nápověda</button>
+    </nav>
+    <div class="spanes">
+
+      <section class="spane" data-s="board">
+        <h3>Nástěnka</h3><p class="sdesc">Platí pro právě otevřenou záložku nástěnky.</p>
+        <div class="srow"><div class="sl"><b>Počet sloupců</b></div><div class="sc"><input id="cols" type="number" min="1" max="8"></div></div>
+        <div class="srow"><div class="sl"><b>Počet řádků</b></div><div class="sc"><input id="rows" type="number" min="1" max="8"></div></div>
+        <div class="srow"><div class="sl"><b>Mezera mezi obrázky</b><small>v pixelech</small></div><div class="sc"><input id="gap" type="number" min="0" max="40"></div></div>
+        <div class="srow"><div class="sl"><b>Zobrazení obrázku v buňce</b><small>Celý obrázek se vejde celý, „Vyplnit" ořízne okraje.</small></div><div class="sc"><select id="fit"><option value="contain">Celý obrázek</option><option value="cover">Vyplnit buňku</option></select></div></div>
+      </section>
+
+      <section class="spane" data-s="capture" hidden>
+        <h3>Snímání</h3><p class="sdesc">Zkratky fungují v celém systému, i když je aplikace schovaná.</p>
+        <div class="srow"><div class="sl"><b>Zkratka: celý monitor</b><small>Klikni do pole a stiskni novou kombinaci kláves.</small></div><div class="sc"><input id="kfull" readonly size="22"><span id="sfull"></span></div></div>
+        <div class="srow"><div class="sl"><b>Zkratka: výřez oblasti</b><small>Po stisku označ oblast myší. Esc nebo pravé tlačítko zruší.</small></div><div class="sc"><input id="kreg" readonly size="22"><span id="sreg"></span></div></div>
+        <div class="srow"><div class="sl"><b>Snímaný monitor</b><small>Automaticky = ten, kde je právě kurzor.</small></div><div class="sc"><select id="mon"></select></div></div>
+      </section>
+
+      <section class="spane" data-s="look" hidden>
+        <h3>Vzhled</h3><p class="sdesc">Barevné podání celé aplikace.</p>
+        <div class="srow"><div class="sl"><b>Motiv</b><small>„Podle systému" se řídí nastavením Windows.</small></div><div class="sc"><div id="theme" class="seg"><button data-v="light" data-ic="sun"> Světlý</button><button data-v="dark" data-ic="moon"> Tmavý</button><button data-v="auto" data-ic="sun-moon"> Podle systému</button></div></div></div>
+      </section>
+
+      <section class="spane" data-s="save" hidden>
+        <h3>Ukládání do složek</h3><p class="sdesc">Na každém obrázku jsou dvě barevná tlačítka uložení. Každé ukládá kopii obrázku (včetně úprav) do jiné složky. Když složka není vybraná, vybere se při prvním kliknutí.</p>
+        <div id="dirs"></div>
+      </section>
+
+      <section class="spane" data-s="help" hidden>
+        <h3>Nástroje a nápověda</h3>
+        <div class="srow"><div class="sl"><b>Složka se snímky</b><small>Otevře složku, kam aplikace ukládá všechny snímky.</small></div><div class="sc"><button id="openimg" data-ic="folder-open"> Otevřít</button></div></div>
+        <div class="srow"><div class="sl"><b>Diagnostika</b><small>Ukáže monitory, zkratky a záznam událostí. Hodí se při hledání chyb.</small></div><div class="sc"><button id="diag">Otevřít</button></div></div>
+        <details id="dctl"><summary>Ovládání</summary><div class="dbody">
+          <table class="ctl">
+            <tr class="sec"><th colspan="2">Snímání</th></tr>
+            <tr><th><kbd>Ctrl+Shift+S</kbd></th><td>Celý monitor (ten, kde je kurzor). Zkratku změníš v části Snímání.</td></tr>
+            <tr><th><kbd>Ctrl+Shift+A</kbd></th><td>Výřez oblasti: táhni myší. <kbd>Esc</kbd> nebo pravé tlačítko zruší.</td></tr>
+            <tr class="sec"><th colspan="2">Nástěnka</th></tr>
+            <tr><th>Tažení obrázku</th><td>Do prázdné buňky = přesun, na obsazenou = prohození, na záložku = přesun do jiné nástěnky.</td></tr>
+            <tr><th>Dvojklik na obrázek</th><td>Otevře režim úprav (QA).</td></tr>
+            <tr><th>Kolečko myši</th><td>Přiblíží obrázek v buňce. Tažením ho posuneš, středním tlačítkem myši vrátíš zoom.</td></tr>
+            <tr><th>Dvojklik na záložku</th><td>Přejmenuje nástěnku.</td></tr>
+            <tr><th><kbd>Ctrl+1</kbd> &hellip; <kbd>9</kbd></th><td>Přepne na nástěnku podle pořadí.</td></tr>
+            <tr><th><kbd>Ctrl+Z</kbd></th><td>Vrátí poslední změnu (přesun, smazání, šipku&hellip;).</td></tr>
+            <tr><th><kbd>Esc</kbd></th><td>Zavře okno nebo zvětšený obrázek.</td></tr>
+            <tr class="sec"><th colspan="2">Tlačítka na obrázku (objeví se po najetí myší)</th></tr>
+            <tr><th><span class="ic" data-ic="lock-open"></span></th><td>Zámek &ndash; zamknutý obrázek nejde smazat, přepsat ani přesunout.</td></tr>
+            <tr><th><span class="ic" data-ic="move-diagonal"></span></th><td>Zvětší obrázek přes celé okno.</td></tr>
+            <tr><th><span class="ic" data-ic="square-pen"></span></th><td>Režim úprav (QA) &ndash; stejné jako dvojklik.</td></tr>
+            <tr><th><span class="ic" data-ic="info"></span></th><td>Název, poznámka a štítky.</td></tr>
+            <tr><th><span class="ic" data-ic="arrow-big-right-dash"></span></th><td>Šipka: klikni sem a potom na cílový obrázek. Kliknutím na šipku změníš popisek, barvu, tvar a zámek.</td></tr>
+            <tr><th><span class="ic" data-ic="arrow-right-left"></span></th><td>Porovnání: klikni sem a potom na druhý snímek.</td></tr>
+            <tr><th><span class="ic" data-ic="save" style="background:#2f5d8a;color:#fff"></span> <span class="ic" data-ic="save" style="background:#3f8f5b;color:#fff"></span></th><td>Dvě barevná tlačítka &ndash; uloží kopii do složky 1 nebo 2.</td></tr>
+            <tr><th><span class="ic" data-ic="trash"></span></th><td>Smaže obrázek do koše.</td></tr>
+            <tr class="sec"><th colspan="2">Editor (QA)</th></tr>
+            <tr><th>Nástroje</th><td>Šipka, Obdélník, Elipsa, Zvýraznit, Číslo, Text, Rozmazat, Pravítko, Pipeta, Ořez.</td></tr>
+            <tr><th>Barva a velikost</th><td>Barva platí pro všechny nakreslené prvky i texty. Velikost je posuvník nebo číslo, které lze přepsat.</td></tr>
+            <tr><th>Ořez</th><td>Označ oblast a potvrď ji (<kbd>Enter</kbd>) nebo zruš (<kbd>Esc</kbd>). Po potvrzení se zobrazí jen vybraná oblast; &bdquo;Zrušit ořez&ldquo; vrátí celý snímek.</td></tr>
+            <tr><th>Pipeta</th><td>Zjistí barvu a zkopíruje její kód. Se zaškrtnutou volbou &bdquo;Barva do obrázku&ldquo; ji zapíše do snímku značkou + a textem.</td></tr>
+            <tr><th><kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd></th><td>Zpět / znovu. <kbd>Esc</kbd> zavře editor bez uložení.</td></tr>
+          </table>
+        </div></details>
+        <details id="dver"><summary id="versum">Verze</summary><div class="dbody"><div id="chl"></div></div></details>
+      </section>
+
+    </div>
   </div>
-  <h4>Snímání</h4>
-  <div class="grp">
-    <label>Zkratka: celý monitor <input id="kfull" readonly size="24" title="Klikni a stiskni novou zkratku"></label><span id="sfull"></span>
-    <label>Zkratka: oblast <input id="kreg" readonly size="24" title="Klikni a stiskni novou zkratku"></label><span id="sreg"></span>
-    <label>Monitor <select id="mon"></select></label>
-  </div>
-  <h4>Vzhled</h4>
-  <div class="grp"><label>Motiv <select id="theme"><option value="dark">Tmavý</option><option value="light">Světlý</option><option value="auto">Podle systému</option></select></label></div>
-  <h4>Nástroje</h4>
-  <div class="grp"><button id="diag">Diagnostika</button></div>
-  <h4>Ovládání</h4>
-  <p class="hint2">Dvojklik = režim úprav (QA) · ⤢ zvětšit · tažením přesunete / prohodíte · ➜ šipka · ⇄ porovnat · ✎ úpravy · ⓘ název, poznámka, štítky · kolečko = zoom, tažení = posun, střední tlačítko = reset · Ctrl+1…9 = nástěnka · Ctrl+Z = zpět</p>
-  <h4>Verze</h4>
-  <div id="ver"></div><div id="chl"></div>
 </div></div>
 
 <div id="dg" class="modal" hidden>
@@ -58,7 +111,7 @@
 </div>
 
 <div id="trash" class="modal" hidden><div class="box wide">
-  <div class="mh"><h3>Koš</h3><span class="sp"></span><button id="trempty">Vysypat koš</button><button class="ghost mclose">✕</button></div>
+  <div class="mh"><h3>Koš</h3><span class="sp"></span><button id="trempty" class="danger">Vysypat koš</button><button class="ghost mclose">✕</button></div>
   <p class="hint2">Smazané obrázky se sem ukládají. „Obnovit" je vrátí do první volné buňky aktivní nástěnky.</p>
   <div id="trgrid"></div>
 </div></div>
@@ -69,7 +122,7 @@
   <label class="col">Poznámka <textarea id="dnote" rows="4"></textarea></label>
   <label class="col">Štítky (oddělené čárkou) <input id="dtags"></label>
   <div id="dq" class="row"><button class="ghost" data-t="bug">bug</button><button class="ghost" data-t="OK">OK</button><button class="ghost" data-t="blocker">blocker</button><button class="ghost" data-t="recept">recept</button></div>
-  <div class="row"><button id="dsave">Uložit</button><button class="ghost mclose">Zrušit</button></div>
+  <div class="row"><button id="dsave" class="pri">Uložit</button><button class="ghost mclose">Zrušit</button></div>
 </div></div>
 
 <div id="cmp" class="modal" hidden><div class="box full">
@@ -81,21 +134,31 @@
 <div id="rep" class="modal" hidden><div class="box">
   <div class="mh"><h3>Report z obrázků</h3><button class="ghost mclose">✕</button></div>
   <label class="col">Název reportu <input id="rtitle" maxlength="80"></label>
-  <p class="hint2">Pořadí podle nástěnky (zleva doprava, shora dolů). Název, poznámka a štítky se berou z ⓘ.</p>
+  <p class="hint2">Pořadí podle nástěnky (zleva doprava, shora dolů). Název, poznámka a štítky se berou z ikony i (informace).</p>
   <div id="rlist"></div>
-  <div class="row"><button id="rpdf">Export PDF</button><button id="rmd">Export Markdown (složka)</button><button id="rtxt" class="ghost">Kopírovat text</button></div>
+  <div class="row"><button id="rpdf" class="pri" data-ic="file-text"> Export PDF</button><button id="rmd" data-ic="file-text"> Export Markdown (složka)</button><button id="rtxt" class="ghost">Kopírovat text</button></div>
 </div></div>
 
 <div id="ed" hidden>
   <div id="edbar">
-    <span id="edtools"></span><span id="edcols"></span>
-    <label>Tloušťka <input id="edw" type="range" min="2" max="12" value="4"></label>
-    <button id="edundo" title="Zpět (Ctrl+Z)">↶</button><button id="edredo" title="Znovu (Ctrl+Y)">↷</button>
-    <label id="edpicklbl" hidden title="Při kliknutí pipetou zapíše do obrázku značku + a text s kódem barvy"><input type="checkbox" id="edpickmk"> Barva do obrázku</label><span id="edinfo"></span>
+    <label class="sz">Velikost <input id="edw" type="range" min="1" max="40" value="4"><input id="edwn" type="number" min="1" max="40" value="4"></label>
+    <button id="edundo" class="tipb" data-tip="Zpět (Ctrl+Z)" data-ic="undo-2"></button><button id="edredo" class="tipb" data-tip="Znovu (Ctrl+Y)" data-ic="redo-2"></button>
+    <label id="edpicklbl" hidden title="Při kliknutí pipetou zapíše do obrázku značku + a text s kódem barvy"><input type="checkbox" id="edpickmk"> Barva do obrázku</label>
+    <span id="edcropbar" hidden><span id="edcropinfo"></span><button id="edcropok" class="pri tipb" data-tip="Potvrdit ořez (Enter)" data-ic="circle-check-big"></button><button id="edcropno" class="tipb" data-tip="Zrušit výběr (Esc)" data-ic="circle-x"></button></span>
+    <button id="edcropreset" class="tipb" data-tip="Zrušit ořez – vrátit celý snímek" hidden>&#8634;</button>
+    <span id="edinfo"></span>
     <span class="sp"></span>
-    <button id="edsave">Uložit</button><button id="edcancel" class="ghost">Zrušit</button>
+    <button id="edsave" class="pri">Uložit</button><button id="edcancel" class="ghost">Zrušit</button>
   </div>
-  <div id="edwrap"><canvas id="edc"></canvas></div>
+  <div id="edmain">
+    <div id="edside">
+      <div id="edtools"></div>
+      <div class="edsep"></div>
+      <label id="edcur" class="tipr" data-tip="Aktuální barva – klikni pro vlastní"><input type="color" id="edcolor" value="#ff3b30"></label>
+      <div id="edcols"></div>
+    </div>
+    <div id="edwrap"><canvas id="edc"></canvas></div>
+  </div>
   <input id="edtxt" hidden placeholder="Text + Enter">
 </div>
 <script src="icons.js"></script>

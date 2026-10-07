@@ -1,4 +1,21 @@
 const CHANGELOG = [
+  { v: '0.8.0', items: [
+    'Editor: nástroje jsou svislý pás ikon vlevo (jako ve Photoshopu), bez popisků – název se ukáže až po najetí myší.',
+    'Editor: výběr barev je pod nástroji – velké okénko aktuální barvy (klik = vlastní barva) a paleta rychlých barev.',
+    'Editor: potvrzení a zrušení ořezu jsou ikony s popiskem při najetí.',
+    'Další ikony: zvýrazňovač, potvrdit (✔), zavřít okno, přidat nástěnku, export PDF a Markdown, motiv (slunce / měsíc / podle systému).' ] },
+  { v: '0.7.1', items: [
+    'Nové ikony (Lucide) v celé aplikaci: horní lišta, tlačítka na obrázku, nástroje editoru, zámek a mazání šipek.',
+    'Nastavení je přehlednější: vlevo nabídka částí (Nástěnka, Snímání, Vzhled, Ukládání do složek, Nástroje a nápověda), vpravo vždy jen jedna část s popisky u každé volby.',
+    'Motiv se volí přepínačem, složky pro ukládání jsou přehledné karty (název, složka, barva).' ] },
+  { v: '0.7.0', items: [
+    'Aplikace se jmenuje ScreenBoard (dříve PrintScreen). Stávající snímky a nástěnky se při prvním spuštění převezmou.',
+    'Nové barevné podání: teplá šedá, bílé karty, jemné okraje, záložky nástěnek s podtržením; světlý motiv je výchozí.',
+    'Nastavení: části Ovládání (přehledná tabulka) a Verze jsou rozbalovací; u verze je uvedeno, že na vývoji pomáhala AI (Claude Sonnet 5.5).',
+    'Dvě barevná tlačítka uložení na každém obrázku – každé ukládá kopii do jiné složky; složky, názvy a barvy tlačítek se volí v Nastavení.',
+    'Ořez v editoru: výběr se nejdřív potvrdí, potom se zobrazí jen vybraná oblast; „Zrušit ořez" vrátí celý snímek.',
+    'Editor: „Tloušťka" je nově „Velikost" s číselným polem, které lze přepsat.',
+    'Texty zapsané do obrázku (text, pravítko, pipeta) mají zvolenou barvu, takže lze vždy zvolit kontrastní. Pipeta s volbou „Barva do obrázku" už aktuální barvu nepřepisuje.' ] },
   { v: '0.6.1', items: [
     'Dvojklik na obrázek otevře rovnou režim úprav (QA); zvětšení přes celé okno je nově tlačítko ⤢.',
     'Pipeta: zaškrtávátko „Barva do obrázku" zapíše do snímku značku + a vedle ní text s kódem barvy.',

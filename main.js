@@ -2,8 +2,13 @@ const { app, BrowserWindow, globalShortcut, desktopCapturer, screen, ipcMain, di
 const path = require('path'), fs = require('fs');
 // Chromium se na Windows někdy nemůže přesunout/vytvořit složku s mezipamětí (přístup odepřen, běží druhá kopie aplikace).
 // Mezipaměť proto dáváme do dočasné složky a spouštíme jen jednu instanci.
+app.setName('ScreenBoard');
+try {   // přejmenování PrintScreen -> ScreenBoard: převzít snímky a nástěnky ze staré složky
+  const oldD = path.join(app.getPath('appData'), 'printscreen', 'data'), newD = path.join(app.getPath('userData'), 'data');
+  if (!fs.existsSync(newD) && fs.existsSync(oldD)) fs.cpSync(oldD, newD, { recursive: true });
+} catch {}
 app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
-app.commandLine.appendSwitch('disk-cache-dir', path.join(app.getPath('temp'), 'PrintScreen-cache'));
+app.commandLine.appendSwitch('disk-cache-dir', path.join(app.getPath('temp'), 'ScreenBoard-cache'));
 if (!app.requestSingleInstanceLock()) app.exit(0);
 app.on('second-instance', () => { if (win && !win.isDestroyed()) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
 let win, selWin, pending, settings, shortStatus = {};
@@ -35,7 +40,7 @@ function createWindow() {
     const d = displays.find(x => x.id !== screen.getPrimaryDisplay().id) || displays[0];
     b = { x: d.workArea.x + 40, y: d.workArea.y + 40, width: Math.min(1200, d.workArea.width - 80), height: Math.min(800, d.workArea.height - 80) };
   }
-  win = new BrowserWindow({ ...b, title: 'PrintScreen', backgroundColor: '#15171c',
+  win = new BrowserWindow({ ...b, title: 'ScreenBoard', backgroundColor: '#15171c',
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true } });
   win.setMenuBarVisibility(false);
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
@@ -43,7 +48,8 @@ function createWindow() {
 }
 
 // ---- nastavení a zkratky
-const DEFAULTS = { fullKey: 'CommandOrControl+Shift+S', regKey: 'CommandOrControl+Shift+A', monitor: 'auto', theme: 'dark' };
+const DEFAULTS = { fullKey: 'CommandOrControl+Shift+S', regKey: 'CommandOrControl+Shift+A', monitor: 'auto', theme: 'light',
+  saveDirs: [{ name: 'Složka 1', path: '', color: '#2f5d8a' }, { name: 'Složka 2', path: '', color: '#3f8f5b' }] };
 function applyShortcuts() {
   globalShortcut.unregisterAll();
   const reg = (key, fn, name) => {
@@ -123,7 +129,7 @@ app.whenReady().then(() => {
   ipcMain.handle('settings-set', (_, s) => { settings = { ...settings, ...s }; writeJson('settings.json', settings); applyShortcuts(); return settingsInfo(); });
   ipcMain.handle('diag', async () => {
     const all = screen.getAllDisplays();
-    const L = [`PrintScreen ${app.getVersion()} · Electron ${process.versions.electron} · ${process.platform}`,
+    const L = [`ScreenBoard ${app.getVersion()} · Electron ${process.versions.electron} · ${process.platform}`,
       'Nastavení: ' + JSON.stringify(settings), 'Stav zkratek: ' + JSON.stringify(shortStatus), 'Kurzor: ' + JSON.stringify(screen.getCursorScreenPoint())];
     all.forEach(d => L.push(`Displej ${d.id}: ${d.size.width}x${d.size.height} na ${d.bounds.x},${d.bounds.y}, měřítko ${d.scaleFactor}${d.id === screen.getPrimaryDisplay().id ? ' (primární)' : ''}`));
     const sources = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 320, height: 200 } });
@@ -162,6 +168,19 @@ app.whenReady().then(() => {
       }
       fs.writeFileSync(path.join(out, 'report.md'), md); shell.openPath(out); return { ok: true };
     } catch (e) { log('Chyba reportu MD: ' + e.stack); return { ok: false, msg: 'Report se nepodařilo vytvořit: ' + e.message }; }
+  });
+  ipcMain.handle('pick-dir', async () => {
+    const r = await dialog.showOpenDialog(win, { properties: ['openDirectory', 'createDirectory'], title: 'Vyber složku pro ukládání obrázků' });
+    return r.canceled ? null : r.filePaths[0];
+  });
+  ipcMain.handle('save-to', (_, name, dir, title) => {
+    try {
+      if (!dir || !fs.existsSync(dir)) return { ok: false, msg: 'Složka neexistuje – vyber ji znovu v Nastavení' };
+      const base = title ? slug(title) : 'ScreenBoard-' + new Date().toISOString().replace(/[:T]/g, '-').slice(0, 19);
+      let fn = base + '.png', n = 1; while (fs.existsSync(path.join(dir, fn))) fn = `${base}-${n++}.png`;
+      fs.copyFileSync(path.join(imgDir(), path.basename(name)), path.join(dir, fn)); log('Uloženo do složky: ' + path.join(dir, fn));
+      return { ok: true, name: fn };
+    } catch (e) { log('Chyba ukládání do složky: ' + e.message); return { ok: false, msg: 'Uložení se nepodařilo: ' + e.message }; }
   });
   ipcMain.handle('save-as', async (_, name) => {
     const src = path.join(imgDir(), path.basename(name));

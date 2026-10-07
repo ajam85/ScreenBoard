@@ -1,7 +1,7 @@
 // Koš, detail obrázku (název/poznámka/štítky), porovnání snímků, report
 const openModal = s => { $(s).hidden = false; };
 document.addEventListener('click', e => {
-  if (e.target.classList.contains('mclose')) e.target.closest('.modal').hidden = true;
+  const mc = e.target.closest('.mclose'); if (mc) mc.closest('.modal').hidden = true;
   else if (e.target.classList.contains('modal')) e.target.hidden = true;
 });
 
@@ -58,7 +58,7 @@ async function openCompare(a, b) {
   } catch (e) { toast('⚠ Porovnání se nepodařilo načíst'); }
 }
 function cmpUi() {
-  document.querySelectorAll('#cmpmodes button').forEach(b => b.style.outline = b.dataset.m === cmode ? '2px solid #fff' : '');
+  document.querySelectorAll('#cmpmodes button').forEach(b => b.classList.toggle('on', b.dataset.m === cmode));
   $('#cmplbl').textContent = clbl[cmode]; $('#cmprng').value = cvals[cmode];
 }
 function cmpDraw() {
@@ -110,3 +110,11 @@ async function doRep(kind) {
   toast(r.ok ? '✔ Report uložen' : (r.msg || 'Zrušeno'));
 }
 $('#rpdf').onclick = () => doRep('pdf'); $('#rmd').onclick = () => doRep('md'); $('#rtxt').onclick = () => doRep('txt');
+
+// ---------- Nastavení: levá navigace po částech ----------
+function showSec(id) {
+  document.querySelectorAll('.snav button').forEach(b => b.classList.toggle('on', b.dataset.s === id));
+  document.querySelectorAll('.spane').forEach(p => p.hidden = p.dataset.s !== id);
+}
+$('.snav').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showSec(b.dataset.s); });
+$('#openimg').onclick = () => api.openFolder();
