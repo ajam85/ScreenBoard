@@ -12,6 +12,7 @@ app.commandLine.appendSwitch('disk-cache-dir', path.join(app.getPath('temp'), 'S
 if (!app.requestSingleInstanceLock()) app.exit(0);
 app.on('second-instance', () => { if (win && !win.isDestroyed()) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
 let win, selWin, pending, settings, shortStatus = {};
+const L = (cs, en) => (settings && settings.lang === 'en') ? en : cs;   // texty nativních dialogů a reportů
 const dataDir = () => path.join(app.getPath('userData'), 'data');
 const imgDir = () => path.join(dataDir(), 'images');
 const file = n => path.join(dataDir(), n);
@@ -50,7 +51,7 @@ function createWindow() {
 }
 
 // ---- nastavení a zkratky
-const DEFAULTS = { fullKey: 'CommandOrControl+Shift+S', regKey: 'CommandOrControl+Shift+A', monitor: 'auto', theme: 'light',
+const DEFAULTS = { fullKey: 'CommandOrControl+Shift+S', regKey: 'CommandOrControl+Shift+A', monitor: 'auto', theme: 'light', lang: 'cs',
   saveDirs: [{ name: 'Složka 1', path: '', color: '#2f5d8a' }, { name: 'Složka 2', path: '', color: '#3f8f5b' }] };
 function applyShortcuts() {
   globalShortcut.unregisterAll();
@@ -62,7 +63,7 @@ function applyShortcuts() {
   reg(settings.regKey, captureRegion, 'region');
 }
 const settingsInfo = () => ({ settings, status: shortStatus, version: app.getVersion(),
-  displays: screen.getAllDisplays().map((d, i) => ({ id: d.id, label: `Monitor ${i + 1}${d.id === screen.getPrimaryDisplay().id ? ' (primární)' : ''} – ${d.size.width}×${d.size.height}` })) });
+  displays: screen.getAllDisplays().map((d, i) => ({ id: d.id, label: `Monitor ${i + 1}${d.id === screen.getPrimaryDisplay().id ? L(' (primární)', ' (primary)') : ''} – ${d.size.width}×${d.size.height}` })) });
 
 // ---- zachycení monitoru
 function pickSource(sources, d) {
@@ -113,7 +114,7 @@ async function captureRegion() {
   selWin.webContents.on('preload-error', (e, p, er) => log('Chyba preload výběru: ' + er));
   selWin.webContents.on('did-fail-load', (e, c, desc) => log('Výběr se nenačetl: ' + desc));
   selWin.on('closed', () => { selWin = null; pending = null; });
-  selWin.loadFile(path.join(__dirname, 'renderer', 'selector.html'));
+  selWin.loadFile(path.join(__dirname, 'renderer', 'selector.html'), { query: { lang: (settings && settings.lang) || 'cs' } });
   setTimeout(() => { if (selWin && !selWin.isVisible()) { selWin.close(); err('Výběr oblasti se nepodařilo zobrazit – otevři Nastavení → Diagnostika'); } }, 5000);
 }
 
@@ -147,7 +148,7 @@ app.whenReady().then(() => {
   ipcMain.handle('report-pdf', async (_, { title, items }) => {
     try {
       const tg = t => t.map(x => `<span class="tg">${escH(x)}</span>`).join('');
-      const html = `<!doctype html><meta charset="utf-8"><style>body{font:13px sans-serif;margin:0;color:#111}h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:0 0 4px}img{max-width:100%;border:1px solid #ccc}.tg{background:#e4ecfd;border-radius:3px;padding:1px 6px;margin-right:4px;font-size:11px}section{break-inside:avoid;margin:0 0 16px}</style><h1>${escH(title)}</h1><p>${new Date().toLocaleString('cs')}</p>` +
+      const html = `<!doctype html><meta charset="utf-8"><style>body{font:13px sans-serif;margin:0;color:#111}h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:0 0 4px}img{max-width:100%;border:1px solid #ccc}.tg{background:#e4ecfd;border-radius:3px;padding:1px 6px;margin-right:4px;font-size:11px}section{break-inside:avoid;margin:0 0 16px}</style><h1>${escH(title)}</h1><p>${new Date().toLocaleString(L('cs', 'en-GB'))}</p>` +
         items.map(it => `<section><h2>${it.n}. ${escH(it.title)}</h2>${tg(it.tags)}${it.note ? `<p>${escH(it.note).replace(/\n/g, '<br>')}</p>` : ''}<img src="data:image/png;base64,${fs.readFileSync(path.join(imgDir(), path.basename(it.file))).toString('base64')}"></section>`).join('');
       const tmp = file('report-tmp.html'); fs.writeFileSync(tmp, html);
       const w = new BrowserWindow({ show: false }); await w.loadFile(tmp);
@@ -159,17 +160,30 @@ app.whenReady().then(() => {
   });
   ipcMain.handle('report-md', async (_, { title, items }) => {
     try {
-      const r = await dialog.showOpenDialog(win, { properties: ['openDirectory', 'createDirectory'], title: 'Kam uložit report' });
+      const r = await dialog.showOpenDialog(win, { properties: ['openDirectory', 'createDirectory'], title: L('Kam uložit report', 'Where to save the report') });
       if (r.canceled || !r.filePaths[0]) return { ok: false };
       const out = path.join(r.filePaths[0], slug(title) + '-' + new Date().toISOString().slice(0, 10)); fs.mkdirSync(out, { recursive: true });
-      let md = `# ${title}\n\n_${new Date().toLocaleString('cs')}_\n\n`;
+      let md = `# ${title}\n\n_${new Date().toLocaleString(L('cs', 'en-GB'))}_\n\n`;
       for (const it of items) {
         const fn = `${String(it.n).padStart(2, '0')}-${slug(it.title)}.png`;
         fs.copyFileSync(path.join(imgDir(), path.basename(it.file)), path.join(out, fn));
-        md += `## ${it.n}. ${it.title}\n\n` + (it.tags.length ? `Štítky: ${it.tags.join(', ')}\n\n` : '') + (it.note ? it.note + '\n\n' : '') + `![${it.title}](${fn})\n\n`;
+        md += `## ${it.n}. ${it.title}\n\n` + (it.tags.length ? `${L('Štítky', 'Tags')}: ${it.tags.join(', ')}\n\n` : '') + (it.note ? it.note + '\n\n' : '') + `![${it.title}](${fn})\n\n`;
       }
       fs.writeFileSync(path.join(out, 'report.md'), md); shell.openPath(out); return { ok: true };
     } catch (e) { log('Chyba reportu MD: ' + e.stack); return { ok: false, msg: 'Report se nepodařilo vytvořit: ' + e.message }; }
+  });
+  ipcMain.handle('import-files', async () => {   // ikona složky v galerii: vložit obrázky ze souboru
+    const r = await dialog.showOpenDialog(win, { title: L('Vložit obrázek ze souboru', 'Add image from file'), properties: ['openFile', 'multiSelections'], filters: [{ name: L('Obrázky (PNG, JPG)', 'Images (PNG, JPG)'), extensions: ['png', 'jpg', 'jpeg'] }] });
+    if (r.canceled) return 0;
+    let n = 0;
+    for (const f of r.filePaths) {
+      const img = nativeImage.createFromPath(f);
+      if (img.isEmpty()) { err(L('Soubor nelze načíst: ', 'Cannot read file: ') + path.basename(f)); continue; }
+      const name = `import-${Date.now()}-${n}.png`; fs.writeFileSync(path.join(imgDir(), name), img.toPNG());
+      log('Vloženo ze souboru: ' + f); if (win && !win.isDestroyed()) win.webContents.send('shot', name);
+      n++; await sleep(40);
+    }
+    return n;
   });
   ipcMain.handle('paste-image', () => {   // Ctrl+V v galerii: obrázek ze schránky -> nový snímek v nástěnce
     try {
@@ -187,7 +201,7 @@ app.whenReady().then(() => {
     if (img.isEmpty()) return false; putImage(img); log('Obrázek zkopírován do schránky: ' + name); return true;
   });
   ipcMain.handle('pick-dir', async () => {
-    const r = await dialog.showOpenDialog(win, { properties: ['openDirectory', 'createDirectory'], title: 'Vyber složku pro ukládání obrázků' });
+    const r = await dialog.showOpenDialog(win, { properties: ['openDirectory', 'createDirectory'], title: L('Vyber složku pro ukládání obrázků', 'Choose a folder for saving images') });
     return r.canceled ? null : r.filePaths[0];
   });
   ipcMain.handle('save-to', (_, name, dir, title) => {

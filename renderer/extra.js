@@ -8,7 +8,7 @@ document.addEventListener('click', e => {
 // ---------- Koš ----------
 function renderTrash() {
   const t = ALL.trash;
-  $('#trgrid').innerHTML = t.length ? t.map((c, i) => `<figure data-i="${i}"><img src="${url(c.view || c.file)}"><div class="cp">${esc(c.title || new Date(c.deleted).toLocaleString('cs'))}<br><small>${esc(c.board || '')}</small></div><div><button data-a="rs">Obnovit</button><button data-a="rm" class="ghost">Smazat</button></div></figure>`).join('') : '<p>Koš je prázdný.</p>';
+  $('#trgrid').innerHTML = t.length ? t.map((c, i) => `<figure data-i="${i}"><img src="${url(c.view || c.file)}"><div class="cp">${esc(c.title || new Date(c.deleted).toLocaleString(LANG() === 'en' ? 'en-GB' : 'cs'))}<br><small>${esc(c.board || '')}</small></div><div><button data-a="rs">Obnovit</button><button data-a="rm" class="ghost">Smazat</button></div></figure>`).join('') : '<p>Koš je prázdný.</p>';
 }
 $('#trashb').onclick = () => { renderTrash(); openModal('#trash'); };
 $('#trgrid').onclick = e => {
@@ -18,12 +18,12 @@ $('#trgrid').onclick = e => {
     pad(); const k = S.cells.slice(0, N()).findIndex(x => !x);
     if (k < 0) return toast('Aktivní nástěnka je plná – uvolni buňku');
     snap(); const { deleted, board, ...r } = c; r.locked = false; S.cells[k] = r; ALL.trash.splice(i, 1); commit(); renderTrash();
-  } else if (confirm('Smazat obrázek z disku natrvalo?')) {
+  } else if (confirm(T('Smazat obrázek z disku natrvalo?'))) {
     api.deleteFiles([c.file, c.view].filter(Boolean)); undo.length = 0; ALL.trash.splice(i, 1); persist(); updTrash(); renderTrash();
   }
 };
 $('#trempty').onclick = () => {
-  if (!ALL.trash.length || !confirm('Vysypat celý koš? Soubory se smažou z disku natrvalo.')) return;
+  if (!ALL.trash.length || !confirm(T('Vysypat celý koš? Soubory se smažou z disku natrvalo.'))) return;
   api.deleteFiles(ALL.trash.flatMap(c => [c.file, c.view].filter(Boolean))); undo.length = 0; ALL.trash = []; persist(); updTrash(); renderTrash();
 };
 
@@ -95,14 +95,14 @@ $('#repb').onclick = () => {
 };
 function repItems() {
   return [...document.querySelectorAll('#rlist input:checked')].map(x => +x.dataset.i).map((i, n) => {
-    const c = S.cells[i]; return { n: n + 1, title: c.title || 'Krok ' + (n + 1), note: c.note || '', tags: c.tags || [], file: c.view || c.file };
+    const c = S.cells[i]; return { n: n + 1, title: c.title || (LANG() === 'en' ? 'Step ' : 'Krok ') + (n + 1), note: c.note || '', tags: c.tags || [], file: c.view || c.file };
   });
 }
 async function doRep(kind) {
   const items = repItems(); if (!items.length) return toast('Vyber alespoň jeden obrázek');
   const title = $('#rtitle').value.trim() || 'Report';
   if (kind === 'txt') {
-    const md = `# ${title}\n\n` + items.map(it => `## ${it.n}. ${it.title}\n` + (it.tags.length ? `Štítky: ${it.tags.join(', ')}\n` : '') + (it.note ? `${it.note}\n` : '') + `Příloha: ${it.file}\n`).join('\n');
+    const md = `# ${title}\n\n` + items.map(it => `## ${it.n}. ${it.title}\n` + (it.tags.length ? `${LANG() === 'en' ? 'Tags' : 'Štítky'}: ${it.tags.join(', ')}\n` : '') + (it.note ? `${it.note}\n` : '') + `${LANG() === 'en' ? 'Attachment' : 'Příloha'}: ${it.file}\n`).join('\n');
     await navigator.clipboard.writeText(md); return toast('Text reportu je ve schránce');
   }
   toast('Připravuji report…');
@@ -127,3 +127,7 @@ document.addEventListener('keydown', async e => {
   e.preventDefault();
   if (!(await api.pasteImage())) toast('Ve schránce není žádný obrázek');
 });
+
+// ---------- Pole galerie: vložení ze souboru a ze schránky ----------
+$('#impf').onclick = () => api.importFiles();
+$('#impc').onclick = async () => { if (!(await api.pasteImage())) toast('Ve schránce není žádný obrázek'); };

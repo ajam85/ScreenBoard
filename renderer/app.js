@@ -282,9 +282,12 @@ function showSet() {
   $('#mon').innerHTML = '<option value="auto">Automaticky (kde je kurzor)</option>' + SET.displays.map(d => `<option value="${d.id}">${esc(d.label)}</option>`).join('');
   $('#mon').value = SET.settings.monitor;
   document.querySelectorAll('#theme button').forEach(b => b.classList.toggle('on', b.dataset.v === (SET.settings.theme || 'light'))); applyTheme();
-  $('#versum').textContent = 'Verze ' + SET.version + ' · vývoj s pomocí AI: Claude Sonnet 5.5 (Anthropic)';
-  $('#chl').innerHTML = CHANGELOG.map(r => `<h5>${r.v}</h5><ul>${r.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>`).join('');
-  $('#dirs').innerHTML = (SET.settings.saveDirs || []).map((d, i) => { const col = esc(d.color || '#2f5d8a'); return `<div class="fcard" data-i="${i}"><div class="fh"><span class="pv" style="background:${col}">${IC.save}</span><b>Tlačítko uložení ${i + 1}</b></div><div class="srow"><div class="sl"><b>Název</b><small>zobrazí se v popisku tlačítka</small></div><div class="sc"><input type="text" data-f="name" value="${esc(d.name || '')}" placeholder="Název" size="22"></div></div><div class="srow"><div class="sl"><b>Složka</b><small>kam se ukládají kopie obrázků</small></div><div class="sc"><input type="text" readonly value="${esc(d.path || '')}" placeholder="(není vybrána)" size="26" title="${esc(d.path || '')}"><button data-a="pick">Vybrat…</button><button data-a="clr" class="ghost" title="Zrušit složku">${IC['circle-x']}</button></div></div><div class="srow"><div class="sl"><b>Barva tlačítka</b></div><div class="sc"><input type="color" data-f="color" value="${col}"></div></div></div>`; }).join('');
+  const en = SET.settings.lang === 'en';
+  if (SET.settings.lang !== I18N.lang()) I18N.set(SET.settings.lang);
+  document.querySelectorAll('#langsel button').forEach(b => b.classList.toggle('on', b.dataset.v === (SET.settings.lang || 'cs')));
+  $('#versum').textContent = (en ? 'Version ' : 'Verze ') + SET.version + (en ? ' · developed with AI assistance: Claude Sonnet 5.5 (Anthropic)' : ' · vývoj s pomocí AI: Claude Sonnet 5.5 (Anthropic)');
+  $('#chl').innerHTML = (en ? CHANGELOG_EN : CHANGELOG).map(r => `<h5>${r.v}</h5><ul>${r.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>`).join('');
+  $('#dirs').innerHTML = (SET.settings.saveDirs || []).map((d, i) => { const col = esc(d.color || '#2f5d8a'); return `<div class="fcard" data-i="${i}"><div class="fh"><span class="pv" style="background:${col}">${IC.save}</span><b>Tlačítko uložení ${i + 1}</b></div><div class="srow"><div class="sl"><b>Název tlačítka</b><small>zobrazí se v popisku tlačítka</small></div><div class="sc"><input type="text" data-f="name" value="${esc(d.name || '')}" placeholder="Název tlačítka" size="22"></div></div><div class="srow"><div class="sl"><b>Složka</b><small>kam se ukládají kopie obrázků</small></div><div class="sc"><input type="text" readonly value="${esc(d.path || '')}" placeholder="(není vybrána)" size="26" title="${esc(d.path || '')}"><button data-a="pick">Vybrat…</button><button data-a="clr" class="ghost" title="Zrušit složku">${IC['circle-x']}</button></div></div><div class="srow"><div class="sl"><b>Barva tlačítka</b></div><div class="sc"><input type="color" data-f="color" value="${col}"></div></div></div>`; }).join('');
   render();
 }
 function applyTheme() {
@@ -292,6 +295,10 @@ function applyTheme() {
   document.documentElement.dataset.theme = (t === 'light' || (t === 'auto' && matchMedia('(prefers-color-scheme: light)').matches)) ? 'light' : 'dark';
 }
 matchMedia('(prefers-color-scheme: light)').addEventListener('change', applyTheme);
+// přepínač jazyka CZ / EN (záhlaví i Nastavení)
+const setLang = async l => { SET = await api.setSettings({ lang: l }); showSet(); };
+$('#lang').onclick = () => setLang(I18N.lang() === 'en' ? 'cs' : 'en');
+$('#langsel').onclick = e => { const v = e.target.dataset.v; if (v) setLang(v); };
 $('#theme').onclick = async e => { const v = e.target.dataset.v; if (v) { SET = await api.setSettings({ theme: v }); showSet(); } };
 // ---------- Ukládání do dvou složek ----------
 function saveBtns() {

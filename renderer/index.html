@@ -13,9 +13,16 @@
   <button id="repb" class="ghost" title="Report z obrázků (PDF / Markdown)" data-ic="report"> Report</button>
   <button id="trashb" class="ghost" title="Koš" data-ic="trash"><b class="bd"></b></button>
   <button id="folder" class="ghost" title="Otevřít složku se snímky" data-ic="folder-open"></button>
+  <button id="lang" class="ghost tipbr" data-tip="Jazyk / Language"><span class="lg" data-l-code="cs">CZ</span><span class="lsep">/</span><span class="lg" data-l-code="en">EN</span></button>
   <button id="cfg" class="ghost" title="Nastavení" data-ic="settings"></button>
 </header>
-<nav id="tabs"></nav>
+<div id="tabbar">
+  <nav id="tabs"></nav>
+  <div class="tabtools">
+    <button id="impf" class="ghost tipbr" data-tip="Vložit obrázek ze souboru…" data-ic="folder-open"></button>
+    <button id="impc" class="ghost tipbr" data-tip="Vložit obrázek ze schránky (Ctrl+V)" data-ic="clipboard-paste"></button>
+  </div>
+</div>
 <div id="wrap">
   <main id="grid"></main>
   <svg id="arrows"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs><g id="ag"></g></svg>
@@ -29,8 +36,9 @@
     <nav class="snav">
       <button data-s="board" class="on">Nástěnka</button>
       <button data-s="capture">Snímání</button>
-      <button data-s="look">Vzhled</button>
+      <button data-s="look">Vzhled a jazyk</button>
       <button data-s="save">Ukládání do složek</button>
+      <button data-s="tips">Tipy a návody</button>
       <button data-s="help">Nástroje a nápověda</button>
     </nav>
     <div class="spanes">
@@ -51,8 +59,9 @@
       </section>
 
       <section class="spane" data-s="look" hidden>
-        <h3>Vzhled</h3><p class="sdesc">Barevné podání celé aplikace.</p>
+        <h3>Vzhled a jazyk</h3><p class="sdesc">Barevné podání a jazyk celé aplikace.</p>
         <div class="srow"><div class="sl"><b>Motiv</b><small>„Podle systému" se řídí nastavením Windows.</small></div><div class="sc"><div id="theme" class="seg"><button data-v="light" data-ic="sun"> Světlý</button><button data-v="dark" data-ic="moon"> Tmavý</button><button data-v="auto" data-ic="sun-moon"> Podle systému</button></div></div></div>
+        <div class="srow"><div class="sl"><b>Jazyk / Language</b><small>Přepne celou aplikaci mezi češtinou a angličtinou.</small></div><div class="sc"><div id="langsel" class="seg"><button data-v="cs">Čeština (CZ)</button><button data-v="en">English (EN)</button></div></div></div>
       </section>
 
       <section class="spane" data-s="save" hidden>
@@ -60,16 +69,109 @@
         <div id="dirs"></div>
       </section>
 
+      <section class="spane guide" data-s="tips" hidden>
+        <h3>Tipy a návody</h3>
+
+        <div data-l="cs">
+        <h4>Snímek celé webové stránky (včetně nezobrazené části)</h4>
+        <p class="sdesc">Postup je určen pro prohlížeče Chrome a Edge a nevyžaduje žádné rozšíření. Snímek pořizuje samotný prohlížeč, lze jej proto použít i u stránek vyžadujících přihlášení (včetně vícefaktorového ověření). Výsledkem je soubor PNG ve složce Stažené soubory (Downloads), nikoli obrázek ve schránce. Postup pro jeho vložení do aplikace ScreenBoard je uveden níže.</p>
+
+        <details open><summary>Pořízení snímku ve vývojářských nástrojích</summary><div class="dbody"><ol>
+          <li>Otevřete požadovanou stránku a stiskněte klávesu <kbd>F12</kbd> (případně <kbd>Ctrl+Shift+I</kbd>).</li>
+          <li>Klikněte dovnitř okna vývojářských nástrojů, nikoli do samotné stránky.</li>
+          <li>Stiskněte <kbd>Ctrl+Shift+P</kbd>; otevře se příkazová nabídka (Command Menu). Alternativně zvolte nabídku <b>&#8942;</b> a příkaz „Spustit příkaz“ (Run command).</li>
+          <li>Zadejte slovo <kbd>snímek</kbd> (<kbd>screenshot</kbd>).</li>
+          <li>Vyberte příkaz <b>Zachytit snímek obrazovky s celou velikostí</b> (<b>Capture full size screenshot</b>).</li>
+          <li>Snímek se uloží jako soubor PNG do složky Stažené soubory (Downloads).</li>
+        </ol>
+        <p class="note">Názvy příkazů odpovídají jazyku vývojářských nástrojů: v české verzi (CZ) platí první uvedený název, v anglické verzi (EN) název v závorce. Obdobné příkazy: „Zachytit snímek obrazovky“ (Capture screenshot) pořídí viditelnou část stránky, „Capture area screenshot“ vybranou oblast a „Capture node screenshot“ vybraný prvek stránky; v české verzi mají obdobně znějící názvy.</p></div></details>
+
+        <details><summary>Změna jazyka vývojářských nástrojů (CZ ⇄ EN)</summary><div class="dbody"><ol>
+          <li>V otevřených vývojářských nástrojích stiskněte klávesu <kbd>F1</kbd> (Nastavení / Settings).</li>
+          <li>Zvolte položku „Předvolby“ (Preferences) a v ní „Jazyk“ (Language).</li>
+          <li>Vyberte požadovaný jazyk: „čeština“ (Czech) nebo „English“ (angličtina).</li>
+          <li>Potvrďte opětovné načtení vývojářských nástrojů („Znovu načíst“ / Reload DevTools).</li>
+        </ol>
+        <p class="note">Změna se týká pouze vývojářských nástrojů, nikoli celého prohlížeče.</p></div></details>
+
+        <details open><summary>Vložení snímku do aplikace ScreenBoard</summary><div class="dbody">
+        <p><b>Varianta A – přímo ze souboru</b></p>
+        <ol>
+          <li>V poli galerie (vpravo v liště záložek) klikněte na ikonu složky <span class="ic" data-ic="folder-open"></span>.</li>
+          <li>Vyberte soubor PNG ze složky Stažené soubory. Snímek bude vložen do první volné buňky aktivní nástěnky.</li>
+        </ol>
+        <p><b>Varianta B – prostřednictvím schránky</b></p>
+        <ol>
+          <li>Otevřete uložený soubor v libovolném prohlížeči obrázků (například v Malování) a stiskněte <kbd>Ctrl+A</kbd> a poté <kbd>Ctrl+C</kbd>.</li>
+          <li>V aplikaci ScreenBoard stiskněte <kbd>Ctrl+V</kbd>, případně klikněte na ikonu vložení ze schránky <span class="ic" data-ic="clipboard-paste"></span> (ne v textovém poli).</li>
+        </ol>
+        <p class="note">Snímek celé stránky do schránky umí zkopírovat také některá rozšíření prohlížeče a v prohlížeči Edge funkce Web Capture (<kbd>Ctrl+Shift+S</kbd>); její názvy a tlačítka se v české verzi mohou lišit. Upozornění: <kbd>Ctrl+Shift+S</kbd> je zároveň výchozí zkratka aplikace ScreenBoard pro snímek celého monitoru; jednu z nich změňte v části „Snímání“.</p></div></details>
+
+        <details><summary>Řešení potíží</summary><div class="dbody"><ul>
+          <li><b>Zkratka otevře jiné okno:</b> v prohlížeči Edge otevře <kbd>Ctrl+Shift+P</kbd> stisknutá mimo vývojářské nástroje okno InPrivate. Nejprve klikněte dovnitř vývojářských nástrojů.</li>
+          <li><b>Příkazová nabídka příkaz nenalezne:</b> příčinou bývá jazyk nástrojů. Zadejte slovo „snímek“ (screenshot), případně jazyk nástrojů změňte (viz výše).</li>
+          <li><b>Chybí obsah načítaný až při posouvání stránky:</b> před pořízením snímku stránku prolistujte kolečkem myši dolů a zpět nahoru.</li>
+          <li><b>Snímek je prázdný nebo oříznutý u velmi dlouhé stránky:</b> grafika má limit přibližně 16 000 px na výšku. Snímejte stránku po částech, případně použijte příkaz „Capture area screenshot“.</li>
+          <li><b>Příkaz není k dispozici:</b> na stránkách <kbd>chrome://</kbd> a v prohlížeči, kde správce vývojářské nástroje zakázal, příkaz nefunguje.</li>
+        </ul></div></details>
+        </div>
+
+        <div data-l="en">
+        <h4>Screenshot of a whole web page (including the part not shown)</h4>
+        <p class="sdesc">This procedure is intended for Chrome and Edge and requires no extension. The screenshot is taken by the browser itself, so it also works for pages that require a login (including multi-factor authentication). The result is a PNG file in the Downloads folder, not an image in the clipboard. How to add it to ScreenBoard is described below.</p>
+
+        <details open><summary>Taking the screenshot in the developer tools</summary><div class="dbody"><ol>
+          <li>Open the required page and press <kbd>F12</kbd> (or <kbd>Ctrl+Shift+I</kbd>).</li>
+          <li>Click inside the developer tools window, not into the page itself.</li>
+          <li>Press <kbd>Ctrl+Shift+P</kbd>; the Command Menu opens. Alternatively, choose the <b>&#8942;</b> menu and the command “Run command” (Czech: “Spustit příkaz”).</li>
+          <li>Type <kbd>screenshot</kbd> (Czech: <kbd>snímek</kbd>).</li>
+          <li>Select <b>Capture full size screenshot</b> (Czech: <b>Zachytit snímek obrazovky s celou velikostí</b>).</li>
+          <li>The screenshot is saved as a PNG file in the Downloads folder.</li>
+        </ol>
+        <p class="note">The command names follow the language of the developer tools: the English (EN) name applies to the English version, the Czech (CZ) name given in brackets to the Czech version. Similar commands: “Capture screenshot” captures the visible part of the page, “Capture area screenshot” a selected area and “Capture node screenshot” a selected page element; they have similarly worded names in the Czech version.</p></div></details>
+
+        <details><summary>Changing the language of the developer tools (EN ⇄ CZ)</summary><div class="dbody"><ol>
+          <li>With the developer tools open, press <kbd>F1</kbd> (Settings; Czech: Nastavení).</li>
+          <li>Choose “Preferences” (Czech: Předvolby) and then “Language” (Czech: Jazyk).</li>
+          <li>Select the required language: “English” or “čeština” (Czech).</li>
+          <li>Confirm reloading the developer tools (“Reload DevTools”).</li>
+        </ol>
+        <p class="note">The change applies to the developer tools only, not to the whole browser.</p></div></details>
+
+        <details open><summary>Adding the screenshot to ScreenBoard</summary><div class="dbody">
+        <p><b>Option A – directly from the file</b></p>
+        <ol>
+          <li>In the gallery field (right end of the tab bar) click the folder icon <span class="ic" data-ic="folder-open"></span>.</li>
+          <li>Select the PNG file from the Downloads folder. The screenshot is placed in the first free cell of the active board.</li>
+        </ol>
+        <p><b>Option B – via the clipboard</b></p>
+        <ol>
+          <li>Open the saved file in any image viewer (for example Paint) and press <kbd>Ctrl+A</kbd> and then <kbd>Ctrl+C</kbd>.</li>
+          <li>In ScreenBoard press <kbd>Ctrl+V</kbd>, or click the paste icon <span class="ic" data-ic="clipboard-paste"></span> (not inside a text field).</li>
+        </ol>
+        <p class="note">Some browser extensions can also copy a full-page screenshot to the clipboard, and Edge offers the Web Capture function (<kbd>Ctrl+Shift+S</kbd>); its names and buttons may differ between language versions. Please note: <kbd>Ctrl+Shift+S</kbd> is also ScreenBoard’s default shortcut for a full-monitor capture; change one of them in the “Capturing” section.</p></div></details>
+
+        <details><summary>Troubleshooting</summary><div class="dbody"><ul>
+          <li><b>The shortcut opens another window:</b> in Edge, <kbd>Ctrl+Shift+P</kbd> pressed outside the developer tools opens an InPrivate window. First click inside the developer tools.</li>
+          <li><b>The Command Menu does not find the command:</b> the cause is usually the language of the tools. Type “screenshot” (Czech: “snímek”) or change the language of the tools (see above).</li>
+          <li><b>Content loaded only while scrolling is missing:</b> before taking the screenshot, scroll the page down with the mouse wheel and back to the top.</li>
+          <li><b>The screenshot is blank or cut off on a very long page:</b> the graphics has a limit of about 16,000 px in height. Capture the page in parts, or use the “Capture area screenshot” command.</li>
+          <li><b>The command is not available:</b> it does not work on <kbd>chrome://</kbd> pages, nor in a browser where an administrator has disabled the developer tools.</li>
+        </ul></div></details>
+        </div>
+      </section>
+
       <section class="spane" data-s="help" hidden>
         <h3>Nástroje a nápověda</h3>
         <div class="srow"><div class="sl"><b>Složka se snímky</b><small>Otevře složku, kam aplikace ukládá všechny snímky.</small></div><div class="sc"><button id="openimg" data-ic="folder-open"> Otevřít</button></div></div>
         <div class="srow"><div class="sl"><b>Diagnostika</b><small>Ukáže monitory, zkratky a záznam událostí. Hodí se při hledání chyb.</small></div><div class="sc"><button id="diag">Otevřít</button></div></div>
         <details id="dctl"><summary>Ovládání</summary><div class="dbody">
-          <table class="ctl">
+          <div data-l="cs"><table class="ctl">
             <tr class="sec"><th colspan="2">Snímání</th></tr>
             <tr><th><kbd>Ctrl+Shift+S</kbd></th><td>Celý monitor (ten, kde je kurzor). Zkratku změníš v části Snímání.</td></tr>
             <tr><th><kbd>Ctrl+Shift+A</kbd></th><td>Výřez oblasti: táhni myší. <kbd>Esc</kbd> nebo pravé tlačítko zruší.</td></tr>
             <tr class="sec"><th colspan="2">Nástěnka</th></tr>
+            <tr><th><span class="ic" data-ic="folder-open"></span> <span class="ic" data-ic="clipboard-paste"></span></th><td>Ikony v pravé části lišty záložek: vložení obrázku ze souboru (PNG, JPG) a ze schránky (stejné jako Ctrl+V).</td></tr>
             <tr><th>Tažení obrázku</th><td>Do prázdné buňky = přesun, na obsazenou = prohození, na záložku = přesun do jiné nástěnky.</td></tr>
             <tr><th>Dvojklik na obrázek</th><td>Otevře režim úprav (QA).</td></tr>
             <tr><th>Kolečko myši</th><td>Přiblíží obrázek v buňce. Tažením ho posuneš, středním tlačítkem myši vrátíš zoom.</td></tr>
@@ -78,14 +180,14 @@
             <tr><th><kbd>Ctrl+1</kbd> &hellip; <kbd>9</kbd></th><td>Přepne na nástěnku podle pořadí.</td></tr>
             <tr><th><kbd>Ctrl+Z</kbd></th><td>Vrátí poslední změnu (přesun, smazání, šipku&hellip;).</td></tr>
             <tr><th><kbd>Esc</kbd></th><td>Zavře okno nebo zvětšený obrázek.</td></tr>
-            <tr class="sec"><th colspan="2">Tlačítka na obrázku (objeví se po najetí myší)</th></tr>
+            <tr class="sec"><th colspan="2">Tlačítka na obrázku (zobrazí se po najetí myší)</th></tr>
             <tr><th><span class="ic" data-ic="lock-open"></span></th><td>Zámek &ndash; zamknutý obrázek nejde smazat, přepsat ani přesunout.</td></tr>
             <tr><th><span class="ic" data-ic="move-diagonal"></span></th><td>Zvětší obrázek přes celé okno.</td></tr>
             <tr><th><span class="ic" data-ic="square-pen"></span></th><td>Režim úprav (QA) &ndash; stejné jako dvojklik.</td></tr>
             <tr><th><span class="ic" data-ic="info"></span></th><td>Název, poznámka a štítky.</td></tr>
             <tr><th><span class="ic" data-ic="arrow-big-right-dash"></span></th><td>Šipka: klikni sem a potom na cílový obrázek. Kliknutím na šipku změníš popisek, barvu, tvar a zámek.</td></tr>
             <tr><th><span class="ic" data-ic="arrow-right-left"></span></th><td>Porovnání: klikni sem a potom na druhý snímek.</td></tr>
-            <tr><th><span class="ic" data-ic="copy"></span></th><td>Zkopíruje obrázek (včetně úprav) do schránky, odkud ho vložíš do jiné aplikace.</td></tr>
+            <tr><th><span class="ic" data-ic="copy"></span></th><td>Zkopíruje obrázek (včetně úprav) do schránky.</td></tr>
             <tr><th><span class="ic" data-ic="save" style="background:#2f5d8a;color:#fff"></span> <span class="ic" data-ic="save" style="background:#3f8f5b;color:#fff"></span></th><td>Dvě barevná tlačítka &ndash; uloží kopii do složky 1 nebo 2.</td></tr>
             <tr><th><span class="ic" data-ic="trash"></span></th><td>Smaže obrázek do koše.</td></tr>
             <tr class="sec"><th colspan="2">Editor (QA)</th></tr>
@@ -95,7 +197,39 @@
             <tr><th>Ořez</th><td>Označ oblast a potvrď ji (<kbd>Enter</kbd>) nebo zruš (<kbd>Esc</kbd>). Po potvrzení se zobrazí jen vybraná oblast; &bdquo;Zrušit ořez&ldquo; vrátí celý snímek.</td></tr>
             <tr><th>Pipeta</th><td>Zjistí barvu a zkopíruje její kód. Se zaškrtnutou volbou &bdquo;Barva do obrázku&ldquo; ji zapíše do snímku značkou + a textem.</td></tr>
             <tr><th><kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd></th><td>Zpět / znovu. <kbd>Esc</kbd> zavře editor bez uložení.</td></tr>
-          </table>
+          </table></div>
+          <div data-l="en"><table class="ctl">
+            <tr class="sec"><th colspan="2">Capturing</th></tr>
+            <tr><th><kbd>Ctrl+Shift+S</kbd></th><td>Full monitor (the one with the cursor). You can change the shortcut in the Capturing section.</td></tr>
+            <tr><th><kbd>Ctrl+Shift+A</kbd></th><td>Region capture: drag with the mouse. <kbd>Esc</kbd> or the right button cancels.</td></tr>
+            <tr class="sec"><th colspan="2">Board</th></tr>
+            <tr><th><span class="ic" data-ic="folder-open"></span> <span class="ic" data-ic="clipboard-paste"></span></th><td>Icons at the right end of the tab bar: add an image from a file (PNG, JPG) or from the clipboard (same as Ctrl+V).</td></tr>
+            <tr><th>Dragging an image</th><td>To an empty cell = move, to an occupied one = swap, onto a tab = move to another board.</td></tr>
+            <tr><th>Double-click an image</th><td>Opens the editing mode (QA).</td></tr>
+            <tr><th>Mouse wheel</th><td>Zooms the image inside the cell. Drag to pan, the middle button resets the zoom.</td></tr>
+            <tr><th><kbd>Ctrl+V</kbd></th><td>Pastes an image from the clipboard into the first free cell of the active board.</td></tr>
+            <tr><th>Double-click a tab</th><td>Renames the board.</td></tr>
+            <tr><th><kbd>Ctrl+1</kbd> &hellip; <kbd>9</kbd></th><td>Switches to the board by its order.</td></tr>
+            <tr><th><kbd>Ctrl+Z</kbd></th><td>Undoes the last change (move, delete, arrow&hellip;).</td></tr>
+            <tr><th><kbd>Esc</kbd></th><td>Closes a window or the enlarged image.</td></tr>
+            <tr class="sec"><th colspan="2">Buttons on an image (shown on mouse hover)</th></tr>
+            <tr><th><span class="ic" data-ic="lock-open"></span></th><td>Lock &ndash; a locked image cannot be deleted, overwritten or moved.</td></tr>
+            <tr><th><span class="ic" data-ic="move-diagonal"></span></th><td>Enlarges the image to the whole window.</td></tr>
+            <tr><th><span class="ic" data-ic="square-pen"></span></th><td>Editing mode (QA) &ndash; same as a double-click.</td></tr>
+            <tr><th><span class="ic" data-ic="info"></span></th><td>Title, note and tags.</td></tr>
+            <tr><th><span class="ic" data-ic="arrow-big-right-dash"></span></th><td>Arrow: click here and then on the target image. Click an arrow to change its label, colour, shape and lock.</td></tr>
+            <tr><th><span class="ic" data-ic="arrow-right-left"></span></th><td>Compare: click here and then on the second image.</td></tr>
+            <tr><th><span class="ic" data-ic="copy"></span></th><td>Copies the image (including edits) to the clipboard.</td></tr>
+            <tr><th><span class="ic" data-ic="save" style="background:#2f5d8a;color:#fff"></span> <span class="ic" data-ic="save" style="background:#3f8f5b;color:#fff"></span></th><td>Two coloured buttons &ndash; save a copy to folder 1 or 2.</td></tr>
+            <tr><th><span class="ic" data-ic="trash"></span></th><td>Moves the image to the trash.</td></tr>
+            <tr class="sec"><th colspan="2">Editor (QA)</th></tr>
+            <tr><th>Top bar</th><td>Undo, Redo, Copy to clipboard (with edits, before saving) and Size. Save and Cancel icons on the right.</td></tr>
+            <tr><th>Tools</th><td>Arrow, Rectangle, Ellipse, Highlight, Number, Text, Blur, Ruler, Pipette, Crop.</td></tr>
+            <tr><th>Colour and size</th><td>The colour applies to all drawn shapes and texts. Size is a slider or a number you can type.</td></tr>
+            <tr><th>Crop</th><td>Select an area and confirm it (<kbd>Enter</kbd>) or cancel (<kbd>Esc</kbd>). After confirming, only the selected area is shown; &ldquo;Cancel crop&rdquo; restores the whole image.</td></tr>
+            <tr><th>Pipette</th><td>Reads the colour and copies its code. With &ldquo;Colour into image&rdquo; ticked, it writes a + mark and text into the image.</td></tr>
+            <tr><th><kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd></th><td>Undo / redo. <kbd>Esc</kbd> closes the editor without saving.</td></tr>
+          </table></div>
         </div></details>
         <details id="dver"><summary id="versum">Verze</summary><div class="dbody"><div id="chl"></div></div></details>
       </section>
@@ -167,6 +301,7 @@
 </div>
 <script src="icons.js"></script>
 <script src="changelog.js"></script>
+<script src="i18n.js"></script>
 <script src="app.js"></script>
 <script src="extra.js"></script>
 <script src="editor.js"></script>

@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('api', {
   deleteFiles: n => ipcRenderer.invoke('delete-files', n),
   reportPdf: r => ipcRenderer.invoke('report-pdf', r),
   reportMd: r => ipcRenderer.invoke('report-md', r),
+  importFiles: () => ipcRenderer.invoke('import-files'),
   pasteImage: () => ipcRenderer.invoke('paste-image'),
   copyImage: d => ipcRenderer.invoke('copy-image', d),
   copyFile: n => ipcRenderer.invoke('copy-file', n),

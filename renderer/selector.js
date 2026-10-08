@@ -1,3 +1,4 @@
+if (new URLSearchParams(location.search).get('lang') === 'en') document.getElementById('help').textContent = 'Drag with the mouse to select an area · Esc / right button = cancel';
 const box = document.getElementById('box'), lbl = document.getElementById('lbl');
 let x0, y0, drag = false;
 const bg = document.getElementById('bg');
