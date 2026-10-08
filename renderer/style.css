@@ -173,3 +173,8 @@ kbd{background:var(--chip);border:1px solid var(--bd2);border-radius:4px;padding
 .tab svg{vertical-align:-3px}
 .seg button svg{vertical-align:-3px}
 #edcols i.on{box-shadow:0 0 0 1.5px var(--bg),0 0 0 3px var(--tx)}
+
+.tipbr:hover::after{top:calc(100% + 8px);right:0;left:auto;transform:none}
+#edbar button svg{width:16px;height:16px}
+
+.tipbl:hover::after{top:calc(100% + 8px);left:0;transform:none}

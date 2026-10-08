@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, desktopCapturer, screen, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, globalShortcut, desktopCapturer, screen, ipcMain, dialog, shell, clipboard, nativeImage } = require('electron');
 const path = require('path'), fs = require('fs');
 // Chromium se na Windows někdy nemůže přesunout/vytvořit složku s mezipamětí (přístup odepřen, běží druhá kopie aplikace).
 // Mezipaměť proto dáváme do dočasné složky a spouštíme jen jednu instanci.
@@ -19,6 +19,8 @@ const readJson = (n, d) => { try { return JSON.parse(fs.readFileSync(file(n), 'u
 const writeJson = (n, v) => fs.writeFileSync(file(n), JSON.stringify(v, null, 2));
 const escH = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const slug = t => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'report';
+// zápis obrázku do schránky (novější verze Electronu mají jiné API než 33)
+const putImage = img => { if (typeof clipboard.writeImage === 'function') clipboard.writeImage(img); else clipboard.write({ image: img }); };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ---- log (soubor log.txt + posledních 200 řádků v paměti pro Diagnostiku)
@@ -168,6 +170,21 @@ app.whenReady().then(() => {
       }
       fs.writeFileSync(path.join(out, 'report.md'), md); shell.openPath(out); return { ok: true };
     } catch (e) { log('Chyba reportu MD: ' + e.stack); return { ok: false, msg: 'Report se nepodařilo vytvořit: ' + e.message }; }
+  });
+  ipcMain.handle('paste-image', () => {   // Ctrl+V v galerii: obrázek ze schránky -> nový snímek v nástěnce
+    try {
+      const img = clipboard.readImage();
+      if (!img || img.isEmpty()) return false;
+      const name = `paste-${Date.now()}.png`; fs.writeFileSync(path.join(imgDir(), name), img.toPNG());
+      const z = img.getSize(); log(`Vloženo ze schránky: ${name} (${z.width}x${z.height})`);
+      if (win && !win.isDestroyed()) win.webContents.send('shot', name);
+      return true;
+    } catch (e) { log('Chyba vložení ze schránky: ' + e.message); err('Vložení ze schránky se nepodařilo: ' + e.message); return false; }
+  });
+  ipcMain.handle('copy-image', (_, du) => { putImage(nativeImage.createFromDataURL(du)); log('Obrázek (z editoru) zkopírován do schránky'); return true; });
+  ipcMain.handle('copy-file', (_, name) => {
+    const img = nativeImage.createFromPath(path.join(imgDir(), path.basename(name)));
+    if (img.isEmpty()) return false; putImage(img); log('Obrázek zkopírován do schránky: ' + name); return true;
   });
   ipcMain.handle('pick-dir', async () => {
     const r = await dialog.showOpenDialog(win, { properties: ['openDirectory', 'createDirectory'], title: 'Vyber složku pro ukládání obrázků' });

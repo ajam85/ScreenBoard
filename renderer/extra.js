@@ -118,3 +118,12 @@ function showSec(id) {
 }
 $('.snav').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showSec(b.dataset.s); });
 $('#openimg').onclick = () => api.openFolder();
+
+// ---------- Vložení obrázku ze schránky (Ctrl+V) ----------
+document.addEventListener('keydown', async e => {
+  if (!((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v')) return;
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable) return;   // psaní textu nechat být
+  if (document.querySelector('.modal:not([hidden])') || !$('#ed').hidden) return;
+  e.preventDefault();
+  if (!(await api.pasteImage())) toast('Ve schránce není žádný obrázek');
+});

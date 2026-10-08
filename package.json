@@ -1,6 +1,6 @@
 {
   "name": "screenboard",
-  "version": "0.8.0",
+  "version": "0.8.2",
   "description": "ScreenBoard – nástěnka screenshotů po ruce",
   "main": "main.js",
   "scripts": {

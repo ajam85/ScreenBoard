@@ -1,4 +1,9 @@
 const CHANGELOG = [
+  { v: '0.8.2', items: [
+    'Vložení obrázku ze schránky: Ctrl+V v galerii přidá obrázek do první volné buňky aktivní nástěnky (hodí se pro snímky stránek vytvořené v prohlížeči nebo jiném nástroji).' ] },
+  { v: '0.8.1', items: [
+    'Editor: Uložit a Zrušit jsou ikony s popiskem při najetí; Zpět a Znovu jsou před Velikostí.',
+    'Kopírování obrázku do schránky: v editoru i s úpravami ještě před uložením, v galerii tlačítkem u každého obrázku.' ] },
   { v: '0.8.0', items: [
     'Editor: nástroje jsou svislý pás ikon vlevo (jako ve Photoshopu), bez popisků – název se ukáže až po najetí myší.',
     'Editor: výběr barev je pod nástroji – velké okénko aktuální barvy (klik = vlastní barva) a paleta rychlých barev.',

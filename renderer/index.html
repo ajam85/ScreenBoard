@@ -73,6 +73,7 @@
             <tr><th>Tažení obrázku</th><td>Do prázdné buňky = přesun, na obsazenou = prohození, na záložku = přesun do jiné nástěnky.</td></tr>
             <tr><th>Dvojklik na obrázek</th><td>Otevře režim úprav (QA).</td></tr>
             <tr><th>Kolečko myši</th><td>Přiblíží obrázek v buňce. Tažením ho posuneš, středním tlačítkem myši vrátíš zoom.</td></tr>
+            <tr><th><kbd>Ctrl+V</kbd></th><td>Vloží obrázek ze schránky (z jiné aplikace, prohlížeče nebo Win+Shift+S) do první volné buňky aktivní nástěnky.</td></tr>
             <tr><th>Dvojklik na záložku</th><td>Přejmenuje nástěnku.</td></tr>
             <tr><th><kbd>Ctrl+1</kbd> &hellip; <kbd>9</kbd></th><td>Přepne na nástěnku podle pořadí.</td></tr>
             <tr><th><kbd>Ctrl+Z</kbd></th><td>Vrátí poslední změnu (přesun, smazání, šipku&hellip;).</td></tr>
@@ -84,9 +85,11 @@
             <tr><th><span class="ic" data-ic="info"></span></th><td>Název, poznámka a štítky.</td></tr>
             <tr><th><span class="ic" data-ic="arrow-big-right-dash"></span></th><td>Šipka: klikni sem a potom na cílový obrázek. Kliknutím na šipku změníš popisek, barvu, tvar a zámek.</td></tr>
             <tr><th><span class="ic" data-ic="arrow-right-left"></span></th><td>Porovnání: klikni sem a potom na druhý snímek.</td></tr>
+            <tr><th><span class="ic" data-ic="copy"></span></th><td>Zkopíruje obrázek (včetně úprav) do schránky, odkud ho vložíš do jiné aplikace.</td></tr>
             <tr><th><span class="ic" data-ic="save" style="background:#2f5d8a;color:#fff"></span> <span class="ic" data-ic="save" style="background:#3f8f5b;color:#fff"></span></th><td>Dvě barevná tlačítka &ndash; uloží kopii do složky 1 nebo 2.</td></tr>
             <tr><th><span class="ic" data-ic="trash"></span></th><td>Smaže obrázek do koše.</td></tr>
             <tr class="sec"><th colspan="2">Editor (QA)</th></tr>
+            <tr><th>Horní lišta</th><td>Zpět, Znovu, Kopírovat do schránky (i s úpravami, ještě před uložením) a Velikost. Vpravo ikony Uložit a Zrušit.</td></tr>
             <tr><th>Nástroje</th><td>Šipka, Obdélník, Elipsa, Zvýraznit, Číslo, Text, Rozmazat, Pravítko, Pipeta, Ořez.</td></tr>
             <tr><th>Barva a velikost</th><td>Barva platí pro všechny nakreslené prvky i texty. Velikost je posuvník nebo číslo, které lze přepsat.</td></tr>
             <tr><th>Ořez</th><td>Označ oblast a potvrď ji (<kbd>Enter</kbd>) nebo zruš (<kbd>Esc</kbd>). Po potvrzení se zobrazí jen vybraná oblast; &bdquo;Zrušit ořez&ldquo; vrátí celý snímek.</td></tr>
@@ -141,14 +144,15 @@
 
 <div id="ed" hidden>
   <div id="edbar">
+    <button id="edundo" class="tipbl" data-tip="Zpět (Ctrl+Z)" data-ic="undo-2"></button><button id="edredo" class="tipbl" data-tip="Znovu (Ctrl+Y)" data-ic="redo-2"></button>
+    <button id="edcopy" class="tipbl" data-tip="Kopírovat obrázek i s úpravami do schránky" data-ic="copy"></button>
     <label class="sz">Velikost <input id="edw" type="range" min="1" max="40" value="4"><input id="edwn" type="number" min="1" max="40" value="4"></label>
-    <button id="edundo" class="tipb" data-tip="Zpět (Ctrl+Z)" data-ic="undo-2"></button><button id="edredo" class="tipb" data-tip="Znovu (Ctrl+Y)" data-ic="redo-2"></button>
     <label id="edpicklbl" hidden title="Při kliknutí pipetou zapíše do obrázku značku + a text s kódem barvy"><input type="checkbox" id="edpickmk"> Barva do obrázku</label>
     <span id="edcropbar" hidden><span id="edcropinfo"></span><button id="edcropok" class="pri tipb" data-tip="Potvrdit ořez (Enter)" data-ic="circle-check-big"></button><button id="edcropno" class="tipb" data-tip="Zrušit výběr (Esc)" data-ic="circle-x"></button></span>
     <button id="edcropreset" class="tipb" data-tip="Zrušit ořez – vrátit celý snímek" hidden>&#8634;</button>
     <span id="edinfo"></span>
     <span class="sp"></span>
-    <button id="edsave" class="pri">Uložit</button><button id="edcancel" class="ghost">Zrušit</button>
+    <button id="edsave" class="pri tipbr" data-tip="Uložit úpravy" data-ic="save"></button><button id="edcancel" class="tipbr" data-tip="Zrušit bez uložení (Esc)" data-ic="circle-x"></button>
   </div>
   <div id="edmain">
     <div id="edside">

@@ -48,7 +48,7 @@ function render() {
     d.dataset.i = i;
     if (c) {
       d.draggable = !c.locked; d.dataset.id = c.id; const z = c.z || { s: 1, x: 0, y: 0 };
-      d.innerHTML = `<img src="${url(c.view || c.file)}" style="object-fit:${S.fit};transform:translate(${z.x}px,${z.y}px) scale(${z.s})" draggable="false"><div class="bar"><button data-a="lock" title="Zamknout / odemknout">${c.locked ? IC.lock : IC['lock-open']}</button><button data-a="max" title="Zvětšit přes celé okno (Esc = zpět)">${IC['move-diagonal']}</button><button data-a="edit" title="Upravit / anotovat (QA) – nebo dvojklik na obrázek">${IC['square-pen']}</button><button data-a="info" title="Název, poznámka, štítky">${IC.info}</button><button data-a="link" title="Spojit šipkou s jiným obrázkem">${IC['arrow-big-right-dash']}</button><button data-a="cmp" title="Porovnat s jiným snímkem">${IC['arrow-right-left']}</button>${saveBtns()}<button data-a="del" title="Smazat">${IC.trash}</button></div>${capHtml(c)}`;
+      d.innerHTML = `<img src="${url(c.view || c.file)}" style="object-fit:${S.fit};transform:translate(${z.x}px,${z.y}px) scale(${z.s})" draggable="false"><div class="bar"><button data-a="lock" title="Zamknout / odemknout">${c.locked ? IC.lock : IC['lock-open']}</button><button data-a="max" title="Zvětšit přes celé okno (Esc = zpět)">${IC['move-diagonal']}</button><button data-a="edit" title="Upravit / anotovat (QA) – nebo dvojklik na obrázek">${IC['square-pen']}</button><button data-a="info" title="Název, poznámka, štítky">${IC.info}</button><button data-a="link" title="Spojit šipkou s jiným obrázkem">${IC['arrow-big-right-dash']}</button><button data-a="cmp" title="Porovnat s jiným snímkem">${IC['arrow-right-left']}</button><button data-a="copy" title="Kopírovat obrázek do schránky">${IC.copy}</button>${saveBtns()}<button data-a="del" title="Smazat">${IC.trash}</button></div>${capHtml(c)}`;
     }
     grid.appendChild(d);
   }
@@ -70,6 +70,7 @@ grid.addEventListener('click', e => {
   if (/^sv\d$/.test(b.dataset.a)) saveTo(+b.dataset.a[2], c);
   else if (b.dataset.a === 'link') startLink(c);
   else if (b.dataset.a === 'cmp') startLink(c, 'cmp');
+  else if (b.dataset.a === 'copy') api.copyFile(c.view || c.file).then(ok => toast(ok ? 'Obrázek je ve schránce' : '\u26a0 Kopírování se nepodařilo'));
   else if (b.dataset.a === 'info') openDetail(c);
   else if (b.dataset.a === 'edit') editCell(c);
   else if (b.dataset.a === 'max') { b.closest('.cell').classList.toggle('max'); drawArrows(); }

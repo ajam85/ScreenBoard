@@ -157,12 +157,21 @@
   function close() { ed.hidden = true; txt.hidden = true; document.removeEventListener('keydown', key, true); }
 
   $('#edcancel').onclick = close;
-  $('#edsave').onclick = async () => {
-    if (!items.length && !crop) { close(); return onSave(null, null); }
+  // výsledný obrázek (originál + anotace, případně oříznutý) – pro uložení i kopírování
+  function renderOut() {
     const full = document.createElement('canvas'); full.width = img.naturalWidth; full.height = img.naturalHeight;
     paintScene(full.getContext('2d'));
-    let out = full;
-    if (crop) { out = document.createElement('canvas'); out.width = crop.w; out.height = crop.h; out.getContext('2d').drawImage(full, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.w, crop.h); }
+    if (!crop) return full;
+    const out = document.createElement('canvas'); out.width = crop.w; out.height = crop.h;
+    out.getContext('2d').drawImage(full, crop.x, crop.y, crop.w, crop.h, 0, 0, crop.w, crop.h); return out;
+  }
+  $('#edcopy').onclick = async () => {
+    try { await api.copyImage(renderOut().toDataURL('image/png')); toast('Obrázek (i s úpravami) je ve schránce'); }
+    catch (e) { toast('\u26a0 Kopírování se nepodařilo'); }
+  };
+  $('#edsave').onclick = async () => {
+    if (!items.length && !crop) { close(); return onSave(null, null); }
+    const out = renderOut();
     const name = await api.writePng(out.toDataURL('image/png'));
     close(); onSave(name, { items, crop });
   };
